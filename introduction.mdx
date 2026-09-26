@@ -1,0 +1,97 @@
+---
+title: "Introduction"
+description: "Welcome to the StaffGlimpse API Documentation. Integrate with our HR and Payroll SaaS REST APIs."
+---
+
+## Welcome
+
+StaffGlimpse is a multi-tenant HR and Payroll SaaS platform. These docs will help you integrate with our API.
+
+---
+
+## Base URLs
+
+StaffGlimpse uses separate API gateways per service domain. All production endpoints are served from AWS API Gateway in the `ap-south-1` (Mumbai) region.
+
+### Production
+
+| Service          | Base URL                                                              |
+| ---------------- | --------------------------------------------------------------------- |
+| Company          | `https://r00buwtnh1.execute-api.ap-south-1.amazonaws.com/live`       |
+| User / Profile   | `https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live`       |
+| Metadata         | `https://0wk40w2jbj.execute-api.ap-south-1.amazonaws.com/live`       |
+| Messages         | `https://7gt46stdyc.execute-api.ap-south-1.amazonaws.com/live`       |
+| Attendance       | `https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live`       |
+| Documents        | `https://6e52pmjmy4.execute-api.ap-south-1.amazonaws.com/live`       |
+| Leave            | `https://5bknc0zrv5.execute-api.ap-south-1.amazonaws.com/live`       |
+| Document Cloud   | `https://d2ikeisatr21la.cloudfront.net`                              |
+
+### Development
+
+When running on `localhost`, all services are proxied through a single `/api` prefix:
+
+```
+http://localhost:4200/api/<service-path>
+```
+
+The Angular proxy configuration rewrites `/api` requests to the appropriate live endpoints, so you don't need to manage CORS or separate base URLs during development.
+
+---
+
+## Authentication
+
+Every API request (except public document downloads) must include **two headers**:
+
+| Header           | Value                                          | Required |
+| ---------------- | --------------------------------------------- | -------- |
+| `Authorization`  | `Bearer <AWS_Cognito_ID_Token>`               | Yes      |
+| `x-api-key`      | Static shared key                              | Yes      |
+
+### Obtaining a Bearer Token
+
+StaffGlimpse uses **AWS Cognito** for user authentication. After a successful login, your application obtains an ID token via the Amplify Auth library:
+
+```typescript
+import { fetchAuthSession } from 'aws-amplify/auth';
+
+const session = await fetchAuthSession();
+const token = session.tokens?.idToken?.toString();
+```
+
+### x-api-key
+
+The `x-api-key` header contains a static shared secret, the same value across all service gateways. You cannot make any authenticated API call without it.
+
+---
+
+## Response Format
+
+All successful responses follow a consistent envelope:
+
+```json
+{
+  "message": "Human-readable summary",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    // endpoint-specific payload
+  }
+}
+```
+
+- `responseCode: 200` indicates success.
+- `result` is the actual data payload; its shape varies per endpoint.
+- Error responses use standard HTTP status codes (400, 401, 403, 404, 500).
+
+---
+
+## API Reference
+
+The full API is documented in the **API Reference** section in the sidebar, auto-generated from `openapi.json` and organized by service domain (Company, Departments, Users, Attendance, Leave, and more).
+
+---
+
+## Support
+
+- Dashboard: [https://staffglimpse.com](https://staffglimpse.com)
+- For integration questions, contact the StaffGlimpse support team via the dashboard.

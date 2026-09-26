@@ -22,35 +22,19 @@
         "groups": [
           {
             "group": "Get Started",
-            "pages": [
-              "docs/introduction",
-              "docs/quickstart",
-              "docs/authentication"
-            ]
+            "pages": []
           },
           {
             "group": "Core Concepts",
-            "pages": [
-              "docs/concepts/multi-tenancy",
-              "docs/concepts/roles-permissions",
-              "docs/concepts/response-format"
-            ]
+            "pages": []
           },
           {
             "group": "Guides",
-            "pages": [
-              "docs/guides/company-setup",
-              "docs/guides/user-management",
-              "docs/guides/attendance",
-              "docs/guides/leave-management",
-              "docs/guides/documents"
-            ]
+            "pages": []
           },
           {
             "group": "Base URLs & Endpoints",
-            "pages": [
-              "docs/endpoints/overview"
-            ]
+            "pages": []
           }
         ]
       },
@@ -59,33 +43,19 @@
         "groups": [
           {
             "group": "Company & Org",
-            "pages": [
-              "api-reference/company",
-              "api-reference/departments",
-              "api-reference/roles"
-            ]
+            "pages": []
           },
           {
             "group": "Users",
-            "pages": [
-              "api-reference/users",
-              "api-reference/metadata"
-            ]
+            "pages": []
           },
           {
             "group": "Workforce",
-            "pages": [
-              "api-reference/attendance",
-              "api-reference/leave-policies",
-              "api-reference/leave-requests"
-            ]
+            "pages": []
           },
           {
             "group": "Platform",
-            "pages": [
-              "api-reference/messages",
-              "api-reference/documents"
-            ]
+            "pages": []
           }
         ]
       }
