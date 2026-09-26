@@ -1,0 +1,25 @@
+{
+  "name": "StaffGlimpse API",
+  "logo": {
+    "dark": "/logo/dark.png",
+    "light": "/logo/light.png"
+  },
+  "favicon": "/favicon.png",
+  "colors": {
+    "primary": "#0F52BA",
+    "light": "#2563EB",
+    "dark": "#3B82F6"
+  },
+  "topbarCtaButton": {
+    "name": "Dashboard",
+    "url": "https://staffglimpse.com"
+  },
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        "introduction"
+      ]
+    }
+  ]
+}
