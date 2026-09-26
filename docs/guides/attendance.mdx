@@ -1,0 +1,250 @@
+---
+title: "Track Employee Attendance with StaffGlimpse"
+sidebarTitle: "Attendance"
+description: "Record punch-in and punch-out events with geolocation, check attendance status, approve weekly records, and generate monthly reports."
+---
+
+StaffGlimpse's Attendance API records when employees start and end their workday using geolocation-verified punch-in/out events. Managers can review and approve weekly records, and admins can generate monthly attendance reports. All requests to the Attendance API require both an `Authorization` header carrying your AWS Cognito ID token and an `x-api-key` header carrying your static shared key.
+
+<Note>
+  Punching in requires location data — `latitude`, `longitude`, `address`, and
+  `accuracy`. Make sure your client application has location permissions enabled
+  before calling any punch endpoint.
+</Note>
+
+## Check Current Status
+
+Before punching in, verify the employee's current attendance state so your UI can show the right action. Send a `GET` request to `/attendance/signin/status`.
+
+```bash
+curl -X GET https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live/attendance/signin/status \
+  -H "x-api-key: <YOUR_API_KEY>" \
+  -H "Authorization: Bearer <YOUR_TOKEN>"
+```
+
+A successful response follows the standard envelope and surfaces these fields inside `result`:
+
+```json
+{
+  "message": "Attendance status fetched successfully",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "signedIn": true,
+    "signInTime": "2024-12-16T09:03:22.000Z",
+    "signOutTime": null,
+    "currentStatus": "PUNCHED_IN",
+    "attendanceId": "att_20241216_emp001",
+    "punchDate": "2024-12-16"
+  }
+}
+```
+
+<ResponseField name="signedIn" type="boolean">
+  `true` if the employee has an open punch-in record for today.
+</ResponseField>
+
+<ResponseField name="signInTime" type="string (ISO 8601)">
+  Timestamp of today's punch-in event. `null` if the employee has not punched in yet.
+</ResponseField>
+
+<ResponseField name="signOutTime" type="string (ISO 8601)">
+  Timestamp of today's punch-out event. `null` if the employee is still punched in.
+</ResponseField>
+
+<ResponseField name="currentStatus" type="string">
+  One of `PUNCHED_IN` or `PUNCHED_OUT`.
+</ResponseField>
+
+<ResponseField name="attendanceId" type="string">
+  Unique identifier for today's attendance record. Reference this ID when querying or approving a specific record.
+</ResponseField>
+
+<ResponseField name="punchDate" type="string (YYYY-MM-DD)">
+  The calendar date the record belongs to.
+</ResponseField>
+
+---
+
+## Punch In
+
+Record the start of an employee's workday by posting location data to `/attendance/signin`. The server attaches a server-side timestamp to the record, so the geolocation payload is the only required body.
+
+```bash
+curl -X POST https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live/attendance/signin \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: <YOUR_API_KEY>" \
+  -H "Authorization: Bearer <YOUR_TOKEN>" \
+  -d '{
+    "latitude": 37.7749,
+    "longitude": -122.4194,
+    "address": "123 Market St, San Francisco, CA",
+    "accuracy": 10,
+    "source": "web"
+  }'
+```
+
+<ParamField body="latitude" type="number" required>
+  WGS 84 latitude of the punch-in location.
+</ParamField>
+
+<ParamField body="longitude" type="number" required>
+  WGS 84 longitude of the punch-in location.
+</ParamField>
+
+<ParamField body="address" type="string" required>
+  Human-readable address resolved from the coordinates (reverse geocoding).
+</ParamField>
+
+<ParamField body="accuracy" type="number" required>
+  GPS accuracy radius in metres as reported by the device.
+</ParamField>
+
+<ParamField body="source" type="string" required>
+  Origin of the punch event. Use `"web"` for browser-based punch-in and `"mobile"` for the mobile app. This field is stored for audit purposes.
+</ParamField>
+
+---
+
+## Punch Out
+
+End the employee's workday by posting the same location payload to `/attendance/signout`. The API matches the open punch-in record for the day and closes it.
+
+```bash
+curl -X POST https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live/attendance/signout \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: <YOUR_API_KEY>" \
+  -H "Authorization: Bearer <YOUR_TOKEN>" \
+  -d '{
+    "latitude": 37.7749,
+    "longitude": -122.4194,
+    "address": "123 Market St, San Francisco, CA",
+    "accuracy": 12,
+    "source": "web"
+  }'
+```
+
+The response follows the same envelope as punch-in, and `result` contains the completed attendance record including the calculated duration for the session.
+
+---
+
+## Weekly Approval Workflow
+
+Attendance records go through a weekly approval cycle. Managers review all records for the current week and approve them in bulk once they are satisfied. The workflow consists of two steps.
+
+<Steps>
+  <Step title="View Pending Records">
+    Fetch every employee who has unapproved attendance records for the current
+    week. The response groups records by employee so a manager can review hours
+    at a glance.
+
+    ```bash
+    curl -X GET https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live/attendance/pending/week \
+      -H "x-api-key: <YOUR_API_KEY>" \
+      -H "Authorization: Bearer <YOUR_TOKEN>"
+    ```
+
+  </Step>
+  <Step title="Approve All Pending Records">
+    Once you have verified the records, approve the entire week in a single
+    request. Supply the week's Monday date as `weekStartDate`, your user ID as
+    `approvedBy`, and any free-text notes in `comments`.
+
+    ```bash
+    curl -X POST https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live/attendance/approve/week \
+      -H "Content-Type: application/json" \
+      -H "x-api-key: <YOUR_API_KEY>" \
+      -H "Authorization: Bearer <YOUR_TOKEN>" \
+      -d '{
+        "weekStartDate": "2024-12-16",
+        "approvedBy": "admin_user_id",
+        "comments": "All records verified"
+      }'
+    ```
+
+    <ParamField body="weekStartDate" type="string (YYYY-MM-DD)" required>
+      The Monday that starts the ISO week you are approving.
+    </ParamField>
+
+    <ParamField body="approvedBy" type="string" required>
+      User ID of the manager or admin performing the approval. Stored in the audit trail.
+    </ParamField>
+
+    <ParamField body="comments" type="string">
+      Optional free-text notes attached to the approval action.
+    </ParamField>
+
+  </Step>
+</Steps>
+
+---
+
+## Monthly Attendance Report
+
+Admins can pull a full breakdown of attendance metrics for any calendar month. Pass `year` and `month` as query parameters to `/attendance/report/monthly`.
+
+```bash
+curl -X GET "https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live/attendance/report/monthly?year=2024&month=12" \
+  -H "x-api-key: <YOUR_API_KEY>" \
+  -H "Authorization: Bearer <YOUR_TOKEN>"
+```
+
+Each employee entry in `result` contains the following fields:
+
+<ResponseField name="totalWorkingDays" type="number">
+  Number of working days in the requested month after excluding weekends and public holidays.
+</ResponseField>
+
+<ResponseField name="totalPunchedIn" type="number">
+  Number of days the employee punched in at least once.
+</ResponseField>
+
+<ResponseField name="totalPunchedOut" type="number">
+  Number of days the employee completed a full punch-out.
+</ResponseField>
+
+<ResponseField name="lateCount" type="number">
+  Days on which the employee punched in after the scheduled start time.
+</ResponseField>
+
+<ResponseField name="earlyLeaveCount" type="number">
+  Days on which the employee punched out before the scheduled end time.
+</ResponseField>
+
+<ResponseField name="totalMinutes" type="number">
+  Aggregate minutes worked across all punch-in/out pairs in the month.
+</ResponseField>
+
+---
+
+## Leave via the Attendance Module
+
+The Attendance module exposes a set of convenience endpoints for leave operations so that time-and-attendance dashboards can surface leave information without switching to the standalone Leave API.
+
+<CardGroup cols={2}>
+  <Card title="Submit a Leave Request" icon="paper-plane">
+    `POST /attendance/leave`
+
+    Accepts the same payload as the core Leave API. Use this endpoint when submitting leave directly from an attendance dashboard.
+  </Card>
+  <Card title="Check Leave Balances" icon="scale-balanced">
+    `GET /attendance/leave/status`
+
+    Returns remaining and pending days per leave type for the authenticated employee.
+  </Card>
+  <Card title="List Leave Requests" icon="list">
+    `GET /attendance/leave/requests`
+
+    Returns all leave requests associated with the authenticated employee or, for managers, their direct reports.
+  </Card>
+  <Card title="Approve a Leave Request" icon="circle-check">
+    `POST /attendance/leave/approve`
+
+    Managers use this endpoint to approve leave requests surfaced inside the attendance module.
+  </Card>
+</CardGroup>
+
+<Info>
+  For full leave policy configuration, detailed ledger history, and advanced
+  approval workflows, use the dedicated [Leave Management](/docs/guides/leave-management) guide.
+</Info>

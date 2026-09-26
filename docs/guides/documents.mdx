@@ -1,0 +1,161 @@
+---
+title: "Upload and Manage Employee Documents"
+sidebarTitle: "Documents"
+description: "Upload files to cloud storage, retrieve document metadata, update categories, and securely download employee documents through StaffGlimpse."
+---
+
+StaffGlimpse's Document API lets you store employee-related files — contracts, payslips, certificates, identity documents — in secure cloud storage (AWS S3) served through CloudFront. You can upload, categorize, list, update, and download documents via the API, keeping all employee records accessible in one place while maintaining tenant-level isolation.
+
+<Note>
+  Documents uploaded via the API are tied to the authenticated user's tenant. Only users within your company can access them.
+</Note>
+
+## Upload a Document
+
+To store a new document, send a `POST /document` request with a `multipart/form-data` body containing the file and its category. The API writes the file to S3 and returns a `documentId` you use for all subsequent operations.
+
+<Steps>
+  <Step title="Prepare your file and category">
+    Identify the file you want to upload (for example, a signed employment contract) and the document category it belongs to (for example, `HR Documents`).
+  </Step>
+  <Step title="Send the upload request">
+    Use `multipart/form-data` and include both the `file` field and the `documentCategory` field.
+
+    ```bash
+    curl -X POST https://6e52pmjmy4.execute-api.ap-south-1.amazonaws.com/live/document \
+      -H "x-api-key: <YOUR_API_KEY>" \
+      -H "Authorization: Bearer <YOUR_TOKEN>" \
+      -F "file=@/path/to/contract.pdf" \
+      -F "documentCategory=HR Documents"
+    ```
+  </Step>
+  <Step title="Save the returned documentId">
+    The response body contains a `documentId`. Store this value — you need it to retrieve, update, or download the document later.
+
+    ```json
+    { "documentId": "doc_new888" }
+    ```
+  </Step>
+</Steps>
+
+## Retrieve Document Metadata
+
+To inspect a document's stored metadata without downloading the file itself, call `GET /document/get` and pass the `documentId` as a query parameter.
+
+```bash
+curl -G https://6e52pmjmy4.execute-api.ap-south-1.amazonaws.com/live/document/get \
+  -H "x-api-key: <YOUR_API_KEY>" \
+  -H "Authorization: Bearer <YOUR_TOKEN>" \
+  --data-urlencode "documentId=doc_new888"
+```
+
+A successful response returns the full document record:
+
+```json
+{
+  "message": "Document retrieved successfully",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "documentId": "doc_new888",
+    "fileName": "contract.pdf",
+    "documentCategory": "HR Documents",
+    "contentType": "application/pdf",
+    "description": "Signed employment contract",
+    "tags": ["contract", "onboarding"],
+    "isSigned": true,
+    "isEncrypted": false,
+    "isShared": false,
+    "isSensitive": true,
+    "isVersioned": false,
+    "version": 1,
+    "createdDate": "2024-06-01T09:00:00Z",
+    "s3Key": "tenants/acme-corp/documents/doc_new888/contract.pdf"
+  }
+}
+```
+
+## Update Document Metadata
+
+Use `PUT /document/update` to change a document's category, toggle its active status, or soft-delete it. Send a JSON body containing the `documentId` along with whichever fields you want to change.
+
+```bash
+curl -X PUT https://6e52pmjmy4.execute-api.ap-south-1.amazonaws.com/live/document/update \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: <YOUR_API_KEY>" \
+  -H "Authorization: Bearer <YOUR_TOKEN>" \
+  -d '{
+    "documentId": "doc_001",
+    "documentCategory": "Archived HR Documents",
+    "isActive": false,
+    "isDeleted": true
+  }'
+```
+
+<Warning>
+  Setting `isDeleted: true` soft-deletes the document — it will no longer appear in standard list queries. This action **is** reversible: send the same request with `"isDeleted": false` to restore the document.
+</Warning>
+
+## Download a Document
+
+File downloads are served from the Document Cloud (CloudFront), not the Document API Gateway. Use `GET /{documentId}` on the CloudFront base URL. This endpoint authenticates via an `x-token` header containing your Cognito ID token — **not** the standard `Authorization` header.
+
+```bash
+curl https://d2ikeisatr21la.cloudfront.net/doc_001 \
+  -H "x-token: <YOUR_COGNITO_ID_TOKEN>" \
+  --output contract.pdf
+```
+
+The response is the raw file binary. The `Content-Type` header reflects the original file type (for example, `application/pdf` or `application/octet-stream`).
+
+<Tip>
+  Pass `--output <filename>` to `curl` (or the equivalent in your HTTP client) so the binary response is written directly to disk rather than printed to the terminal.
+</Tip>
+
+## Document Fields Reference
+
+The following fields appear in the document record returned by `GET /document/get` and related endpoints.
+
+<ResponseField name="documentId" type="string" required>
+  Unique identifier for the document, assigned at upload time. Use this value in all subsequent reads, updates, and downloads.
+</ResponseField>
+
+<ResponseField name="fileName" type="string">
+  Original filename of the uploaded file as provided during the `POST /document` request.
+</ResponseField>
+
+<ResponseField name="documentCategory" type="string">
+  Logical grouping for the document (for example, `HR Documents`, `Payslips`, `Compliance`). Updateable via `PUT /document/update`.
+</ResponseField>
+
+<ResponseField name="contentType" type="string">
+  MIME type of the file determined at upload (for example, `application/pdf`, `image/png`).
+</ResponseField>
+
+<ResponseField name="isSigned" type="boolean">
+  Indicates whether the document has been digitally or physically signed.
+</ResponseField>
+
+<ResponseField name="isEncrypted" type="boolean">
+  Indicates whether the file stored in S3 is encrypted at the application level (beyond default S3 server-side encryption).
+</ResponseField>
+
+<ResponseField name="isShared" type="boolean">
+  Indicates whether the document has been shared with users outside the immediate owner scope.
+</ResponseField>
+
+<ResponseField name="isSensitive" type="boolean">
+  Marks the document as sensitive (for example, medical records, salary information). Sensitive documents may be subject to additional access controls.
+</ResponseField>
+
+<ResponseField name="isVersioned" type="boolean">
+  Indicates whether version tracking is enabled for this document.
+</ResponseField>
+
+<ResponseField name="version" type="integer">
+  Current version number of the document. Starts at `1` on initial upload and increments with each versioned update.
+</ResponseField>
+
+<ResponseField name="s3Key" type="string">
+  Internal storage path of the file within the S3 bucket. This value is managed by StaffGlimpse and is provided for reference only — use the CloudFront download endpoint to retrieve the file.
+</ResponseField>

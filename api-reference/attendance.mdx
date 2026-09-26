@@ -1,0 +1,499 @@
+---
+title: "Attendance API — Punch In, Out, and Reporting"
+sidebarTitle: "Attendance"
+description: "REST endpoints for recording punch-in and punch-out events, checking attendance status, approving weekly records, and generating monthly reports."
+---
+
+The Attendance API records and manages employee time tracking. Employees punch in and out with geolocation data, managers approve weekly records, and admins can generate monthly attendance summaries. All requests must include both the `Authorization` and `x-api-key` headers, and all responses follow the standard StaffGlimpse envelope.
+
+**Base URL:** `https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live`
+
+---
+
+## Authentication
+
+Every request to the Attendance API requires both of the following headers:
+
+| Header | Value |
+|---|---|
+| `Authorization` | `Bearer <AWS_Cognito_ID_Token>` |
+| `x-api-key` | `<static_shared_key>` |
+
+---
+
+## GET /attendance/signin/status
+
+**Get Sign-In Status** — retrieve the current punch-in/out status for the authenticated user.
+
+Use this endpoint to check whether the user is currently clocked in before rendering the punch-in or punch-out button in your UI.
+
+### Response Fields
+
+<ResponseField name="signedIn" type="boolean">
+  Whether the user is currently punched in.
+</ResponseField>
+
+<ResponseField name="signInTime" type="string">
+  ISO 8601 timestamp of the most recent punch-in event.
+</ResponseField>
+
+<ResponseField name="signOutTime" type="string">
+  ISO 8601 timestamp of the most recent punch-out event. `null` if the user has not yet punched out.
+</ResponseField>
+
+<ResponseField name="currentStatus" type="string">
+  Either `PUNCHED_IN` or `PUNCHED_OUT`.
+</ResponseField>
+
+<ResponseField name="attendanceId" type="string">
+  Unique identifier for today's attendance record.
+</ResponseField>
+
+<ResponseField name="punchDate" type="string">
+  The calendar date of the current attendance record in `YYYY-MM-DD` format.
+</ResponseField>
+
+```bash
+curl https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live/attendance/signin/status \
+  -H "Authorization: Bearer <YOUR_COGNITO_ID_TOKEN>" \
+  -H "x-api-key: <YOUR_API_KEY>"
+```
+
+```json
+{
+  "message": "Attendance status retrieved successfully.",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "signedIn": true,
+    "signInTime": "2024-06-10T08:45:00.000Z",
+    "signOutTime": null,
+    "currentStatus": "PUNCHED_IN",
+    "attendanceId": "att_20240610_usr001",
+    "punchDate": "2024-06-10"
+  }
+}
+```
+
+---
+
+## POST /attendance/signin
+
+**Punch In** — record an employee's punch-in event with geolocation data.
+
+Call this endpoint when an employee starts their work session. The API captures location information to verify on-site or remote attendance.
+
+### Request Body
+
+<ParamField body="latitude" type="number" required>
+  The GPS latitude coordinate at the time of punch-in.
+</ParamField>
+
+<ParamField body="longitude" type="number" required>
+  The GPS longitude coordinate at the time of punch-in.
+</ParamField>
+
+<ParamField body="address" type="string" required>
+  Human-readable address resolved from the GPS coordinates.
+</ParamField>
+
+<ParamField body="accuracy" type="number" required>
+  GPS accuracy in meters. Lower values indicate a more precise location fix.
+</ParamField>
+
+<ParamField body="source" type="string" required>
+  The client surface submitting the punch-in. Accepted values: `web` or `mobile`.
+</ParamField>
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST \
+  https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live/attendance/signin \
+  -H "Authorization: Bearer <YOUR_COGNITO_ID_TOKEN>" \
+  -H "x-api-key: <YOUR_API_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "latitude": 28.6139,
+    "longitude": 77.2090,
+    "address": "Connaught Place, New Delhi, India",
+    "accuracy": 12.5,
+    "source": "mobile"
+  }'
+```
+
+```json Request Body
+{
+  "latitude": 28.6139,
+  "longitude": 77.2090,
+  "address": "Connaught Place, New Delhi, India",
+  "accuracy": 12.5,
+  "source": "mobile"
+}
+```
+
+</CodeGroup>
+
+```json Response
+{
+  "message": "Punch-in recorded successfully.",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "signedIn": true,
+    "signInTime": "2024-06-10T08:45:00.000Z",
+    "attendanceId": "att_20240610_usr001",
+    "punchDate": "2024-06-10"
+  }
+}
+```
+
+---
+
+## POST /attendance/signout
+
+**Punch Out** — record an employee's punch-out event with geolocation data.
+
+Call this endpoint when an employee ends their work session. The same location parameters used for punch-in are required for punch-out.
+
+### Request Body
+
+<ParamField body="latitude" type="number" required>
+  The GPS latitude coordinate at the time of punch-out.
+</ParamField>
+
+<ParamField body="longitude" type="number" required>
+  The GPS longitude coordinate at the time of punch-out.
+</ParamField>
+
+<ParamField body="address" type="string" required>
+  Human-readable address resolved from the GPS coordinates.
+</ParamField>
+
+<ParamField body="accuracy" type="number" required>
+  GPS accuracy in meters at the time of punch-out.
+</ParamField>
+
+<ParamField body="source" type="string" required>
+  The client surface submitting the punch-out. Accepted values: `web` or `mobile`.
+</ParamField>
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST \
+  https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live/attendance/signout \
+  -H "Authorization: Bearer <YOUR_COGNITO_ID_TOKEN>" \
+  -H "x-api-key: <YOUR_API_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "latitude": 28.6139,
+    "longitude": 77.2090,
+    "address": "Connaught Place, New Delhi, India",
+    "accuracy": 14.0,
+    "source": "mobile"
+  }'
+```
+
+```json Request Body
+{
+  "latitude": 28.6139,
+  "longitude": 77.2090,
+  "address": "Connaught Place, New Delhi, India",
+  "accuracy": 14.0,
+  "source": "mobile"
+}
+```
+
+</CodeGroup>
+
+```json Response
+{
+  "message": "Punch-out recorded successfully.",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "signedIn": false,
+    "signInTime": "2024-06-10T08:45:00.000Z",
+    "signOutTime": "2024-06-10T17:30:00.000Z",
+    "attendanceId": "att_20240610_usr001",
+    "punchDate": "2024-06-10"
+  }
+}
+```
+
+---
+
+## GET /attendance/pending/week
+
+**Get Pending Week** — retrieve all employees who have unapproved attendance records for the current week.
+
+Managers use this endpoint to identify which team members require attendance approval before the weekly close.
+
+```bash
+curl https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live/attendance/pending/week \
+  -H "Authorization: Bearer <YOUR_COGNITO_ID_TOKEN>" \
+  -H "x-api-key: <YOUR_API_KEY>"
+```
+
+```json Response
+{
+  "message": "Pending weekly attendance records retrieved.",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "weekStartDate": "2024-06-10",
+    "weekEndDate": "2024-06-16",
+    "pendingEmployees": [
+      {
+        "userId": "usr_001",
+        "fullName": "Priya Sharma",
+        "department": "Engineering",
+        "pendingDays": ["2024-06-10", "2024-06-11", "2024-06-12"]
+      },
+      {
+        "userId": "usr_002",
+        "fullName": "Rohan Mehta",
+        "department": "Design",
+        "pendingDays": ["2024-06-13", "2024-06-14"]
+      }
+    ],
+    "totalPending": 2
+  }
+}
+```
+
+---
+
+## POST /attendance/approve/week
+
+**Approve Pending Week** — approve all outstanding attendance records for a specified week.
+
+Managers call this endpoint after reviewing the pending records returned by `GET /attendance/pending/week`.
+
+### Request Body
+
+<ParamField body="weekStartDate" type="string" required>
+  The Monday of the week to approve, in `YYYY-MM-DD` format (e.g., `"2024-06-10"`).
+</ParamField>
+
+<ParamField body="approvedBy" type="string" required>
+  The user ID of the manager performing the approval.
+</ParamField>
+
+<ParamField body="comments" type="string">
+  Optional notes or remarks about the approval.
+</ParamField>
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST \
+  https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live/attendance/approve/week \
+  -H "Authorization: Bearer <YOUR_COGNITO_ID_TOKEN>" \
+  -H "x-api-key: <YOUR_API_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "weekStartDate": "2024-06-10",
+    "approvedBy": "usr_manager_007",
+    "comments": "All records verified and approved."
+  }'
+```
+
+```json Request Body
+{
+  "weekStartDate": "2024-06-10",
+  "approvedBy": "usr_manager_007",
+  "comments": "All records verified and approved."
+}
+```
+
+</CodeGroup>
+
+```json Response
+{
+  "message": "Weekly attendance approved successfully.",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "weekStartDate": "2024-06-10",
+    "weekEndDate": "2024-06-16",
+    "approvedBy": "usr_manager_007",
+    "approvedRecords": 12,
+    "approvedAt": "2024-06-16T18:00:00.000Z"
+  }
+}
+```
+
+---
+
+## GET /attendance/report/monthly
+
+**Monthly Report** — generate a monthly attendance summary for all employees in the company.
+
+Use the `year` and `month` query parameters to scope the report. The response includes per-employee metrics useful for payroll processing and HR analytics.
+
+### Query Parameters
+
+<ParamField query="year" type="integer" required>
+  The four-digit year for the report (e.g., `2024`).
+</ParamField>
+
+<ParamField query="month" type="integer" required>
+  The month number, from `1` (January) to `12` (December).
+</ParamField>
+
+```bash
+curl "https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live/attendance/report/monthly?year=2024&month=6" \
+  -H "Authorization: Bearer <YOUR_COGNITO_ID_TOKEN>" \
+  -H "x-api-key: <YOUR_API_KEY>"
+```
+
+```json Response
+{
+  "message": "Monthly attendance report generated.",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "year": 2024,
+    "month": 6,
+    "report": [
+      {
+        "userId": "usr_001",
+        "fullName": "Priya Sharma",
+        "department": "Engineering",
+        "totalWorkingDays": 20,
+        "totalPunchedIn": 19,
+        "totalPunchedOut": 19,
+        "lateCount": 3,
+        "earlyLeaveCount": 1,
+        "totalMinutes": 9120
+      },
+      {
+        "userId": "usr_002",
+        "fullName": "Rohan Mehta",
+        "department": "Design",
+        "totalWorkingDays": 20,
+        "totalPunchedIn": 18,
+        "totalPunchedOut": 18,
+        "lateCount": 0,
+        "earlyLeaveCount": 2,
+        "totalMinutes": 8640
+      }
+    ]
+  }
+}
+```
+
+### Report Fields per Employee
+
+| Field | Description |
+|---|---|
+| `totalWorkingDays` | Number of scheduled working days in the month |
+| `totalPunchedIn` | Days the employee successfully punched in |
+| `totalPunchedOut` | Days the employee successfully punched out |
+| `lateCount` | Days the employee arrived after the configured late threshold |
+| `earlyLeaveCount` | Days the employee left before the configured early-leave threshold |
+| `totalMinutes` | Cumulative minutes worked across the entire month |
+
+---
+
+## Leave Management via Attendance API
+
+The Attendance API also exposes convenience endpoints that mirror the dedicated Leave API, allowing integrated clients to manage leave without switching base URLs.
+
+### POST /attendance/leave
+
+**Submit Leave Request** — submit a leave application on behalf of the authenticated employee. The request body is identical to `POST /leave/request/create` in the Leave Requests API.
+
+```bash
+curl -X POST \
+  https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live/attendance/leave \
+  -H "Authorization: Bearer <YOUR_COGNITO_ID_TOKEN>" \
+  -H "x-api-key: <YOUR_API_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "leaveType": "Sick",
+    "fromDate": "2024-06-14",
+    "toDate": "2024-06-14",
+    "days": 1,
+    "reason": "Fever and rest required."
+  }'
+```
+
+---
+
+### GET /attendance/leave/status
+
+**Get Leave Balances** — retrieve the current leave balances (entitlement, used, and remaining) for the authenticated employee across all configured leave types.
+
+```bash
+curl https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live/attendance/leave/status \
+  -H "Authorization: Bearer <YOUR_COGNITO_ID_TOKEN>" \
+  -H "x-api-key: <YOUR_API_KEY>"
+```
+
+---
+
+### GET /attendance/leave/requests
+
+**List Leave Requests** — retrieve all leave requests submitted by the authenticated employee.
+
+```bash
+curl https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live/attendance/leave/requests \
+  -H "Authorization: Bearer <YOUR_COGNITO_ID_TOKEN>" \
+  -H "x-api-key: <YOUR_API_KEY>"
+```
+
+---
+
+### POST /attendance/leave/approve
+
+**Approve or Reject a Leave Request** — update the status of a leave request as a manager.
+
+<Note>
+  This endpoint requires the authenticated user to have a **manager** or **admin** role. Requests from employees without elevated permissions will be rejected with a `403 Forbidden` response.
+</Note>
+
+<ParamField body="leaveRequestId" type="string" required>
+  The unique identifier of the leave request to act on.
+</ParamField>
+
+<ParamField body="action" type="string" required>
+  The action to perform. Accepted values: `approve` or `reject`.
+</ParamField>
+
+<ParamField body="comments" type="string">
+  Optional remarks from the manager to accompany the decision.
+</ParamField>
+
+<ParamField body="userId" type="string" required>
+  The user ID of the employee whose leave request is being reviewed.
+</ParamField>
+
+```bash
+curl -X POST \
+  https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live/attendance/leave/approve \
+  -H "Authorization: Bearer <YOUR_COGNITO_ID_TOKEN>" \
+  -H "x-api-key: <YOUR_API_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "leaveRequestId": "lr_20240614_usr001",
+    "action": "approve",
+    "comments": "Approved. Please rest and recover.",
+    "userId": "usr_001"
+  }'
+```
+
+```json Response
+{
+  "message": "Leave request approved successfully.",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "leaveRequestId": "lr_20240614_usr001",
+    "action": "approve",
+    "updatedStatus": "APPROVED"
+  }
+}
+```

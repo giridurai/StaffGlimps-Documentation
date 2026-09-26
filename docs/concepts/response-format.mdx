@@ -1,0 +1,145 @@
+---
+title: "API Response Format and Error Handling"
+sidebarTitle: "Response Format"
+description: "All StaffGlimpse API responses use a consistent JSON envelope. Learn the response structure, status codes, and how to handle API errors."
+---
+
+Every StaffGlimpse endpoint — regardless of which service domain it belongs to — returns the same consistent JSON envelope. Whether you are registering a company, fetching attendance records, or submitting a leave request, the outer structure of the response is always predictable. This uniformity lets you write a single response-handling layer in your application and reuse it across every API call.
+
+## Success Response Structure
+
+A successful response always wraps the endpoint-specific payload inside a `result` field, accompanied by a human-readable `message`, a numeric `responseCode`, and a string `response` status:
+
+```json
+{
+  "message": "Human-readable summary",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    // endpoint-specific payload
+  }
+}
+```
+
+The four top-level fields are described below:
+
+<ResponseField name="message" type="string">
+  A human-readable description of the outcome. On success this is a brief
+  confirmation (e.g., `"Company fetched successfully"`). On failure it explains
+  what went wrong and often names the offending field or parameter.
+</ResponseField>
+
+<ResponseField name="responseCode" type="integer">
+  Mirrors the HTTP status code of the response. `200` indicates success. Any
+  value outside the 2xx range signals a problem — check `message` for details.
+</ResponseField>
+
+<ResponseField name="response" type="string">
+  A machine-friendly status string. Will be either `"Success"` or `"Error"`.
+  Use this field for programmatic branching instead of comparing `message`
+  strings, which may change between releases.
+</ResponseField>
+
+<ResponseField name="result" type="object | array | null">
+  The actual data payload returned by the endpoint. Its shape varies per
+  endpoint — consult the individual endpoint reference pages for the exact
+  schema. On error responses, `result` is `null`.
+</ResponseField>
+
+## HTTP Status Codes
+
+StaffGlimpse mirrors standard HTTP semantics. The `responseCode` field inside the envelope will always match the HTTP status code of the response:
+
+| Status | Meaning                                                                  |
+| ------ | ------------------------------------------------------------------------ |
+| `200`  | **Success** — the operation completed as expected.                       |
+| `400`  | **Bad Request** — a validation error in the request body or parameters.  |
+| `401`  | **Unauthorized** — the Bearer token is missing, malformed, or expired.   |
+| `403`  | **Forbidden** — the `x-api-key` header is missing or invalid.            |
+| `404`  | **Not Found** — the requested resource does not exist.                   |
+| `500`  | **Internal Server Error** — an unexpected server-side failure; contact StaffGlimpse support. |
+
+<Info>
+  A `401` and a `403` are intentionally distinct in StaffGlimpse. `401` means
+  your Cognito token is the problem; `403` means your API key is the problem.
+  Check both headers independently when debugging authentication failures.
+</Info>
+
+## Handling Errors
+
+When an operation fails, the envelope's `response` field is set to `"Error"`, `result` is `null`, and `message` contains a description of what went wrong:
+
+```json
+{
+  "message": "Validation error: departmentName is required",
+  "responseCode": 400,
+  "response": "Error",
+  "result": null
+}
+```
+
+Always check `responseCode` (or equivalently the HTTP status) before attempting to access `result`. Accessing `result` without first confirming success will lead to null-reference errors in your application:
+
+<Tabs>
+  <Tab title="JavaScript">
+    ```javascript
+    const data = await response.json();
+
+    if (data.responseCode !== 200) {
+      // Surface the message to your logging system or user interface
+      console.error(`API error ${data.responseCode}: ${data.message}`);
+      return;
+    }
+
+    // Safe to access result here
+    const company = data.result;
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    data = response.json()
+
+    if data["responseCode"] != 200:
+        # Surface the message to your logging system or user interface
+        print(f"API error {data['responseCode']}: {data['message']}")
+        raise Exception(data["message"])
+
+    # Safe to access result here
+    company = data["result"]
+    ```
+  </Tab>
+</Tabs>
+
+## Pagination
+
+Some list endpoints — such as leave requests and attendance records — include a `pagination` object inside `result` alongside the data array. Use it to navigate multi-page result sets:
+
+```json
+"pagination": {
+  "totalRecords": 42,
+  "currentPage": 1,
+  "totalPages": 3
+}
+```
+
+<ResponseField name="pagination.totalRecords" type="integer">
+  The total number of records matching your query across all pages.
+</ResponseField>
+
+<ResponseField name="pagination.currentPage" type="integer">
+  The page number of the current response, starting at `1`.
+</ResponseField>
+
+<ResponseField name="pagination.totalPages" type="integer">
+  The total number of pages available. When `currentPage` equals `totalPages`,
+  you have reached the last page.
+</ResponseField>
+
+Where pagination is supported, pass a `limit` query parameter to control how many records are returned per page, and a `page` parameter to request a specific page. Refer to individual endpoint reference pages for the exact parameters each endpoint accepts.
+
+<Tip>
+  During development, log the full response envelope — not just `result` — so
+  you can always see the `message` field. It frequently provides actionable
+  error descriptions such as the name of the missing field or the ID that
+  failed validation, cutting down debugging time significantly.
+</Tip>

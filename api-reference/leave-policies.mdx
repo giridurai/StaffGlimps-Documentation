@@ -1,0 +1,466 @@
+---
+title: "Leave Policies API — Configure Leave Rules and Holidays"
+sidebarTitle: "Leave Policies"
+description: "REST endpoints for creating and updating company leave policies per location, and fetching national and regional public holidays."
+---
+
+The Leave Policies API (part of the Company service) lets company admins define leave types, annual allowances, carry-forward rules, and holiday calendars per geographic location. Policies are scoped to a location object so that companies operating across multiple regions or countries can apply distinct rules for each office.
+
+**Base URL:** `https://r00buwtnh1.execute-api.ap-south-1.amazonaws.com/live`
+
+---
+
+## Authentication
+
+Every request to the Leave Policies API requires both of the following headers:
+
+| Header | Value |
+|---|---|
+| `Authorization` | `Bearer <AWS_Cognito_ID_Token>` |
+| `x-api-key` | `<static_shared_key>` |
+
+---
+
+## POST /company/leave/create
+
+**Create Leave Policy** — define a new set of leave rules for a specific company location.
+
+Use this endpoint when onboarding a new office location or configuring leave for the first time. Each policy object in the `leavePolicy` array represents one distinct leave type with its own allocation and rules.
+
+### Request Body
+
+<ParamField body="metadata" type="string" required>
+  Must be set to `"leavePolicy"`. This value identifies the resource type being created within the Company service.
+</ParamField>
+
+<ParamField body="location" type="object" required>
+  The geographic location this policy applies to.
+  <Expandable title="location fields">
+    <ParamField body="country" type="string" required>
+      Country name or ISO 3166-1 alpha-2 code (e.g., `"IN"` or `"India"`).
+    </ParamField>
+    <ParamField body="province" type="string" required>
+      State or province name (e.g., `"Delhi"`).
+    </ParamField>
+    <ParamField body="city" type="string" required>
+      City name (e.g., `"New Delhi"`).
+    </ParamField>
+    <ParamField body="locationName" type="string" required>
+      A human-readable label for the office or location (e.g., `"HQ - New Delhi"`).
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="leavePolicy" type="array" required>
+  An array of leave type policy objects. Each object configures one leave type.
+  <Expandable title="policy object fields">
+    <ParamField body="type" type="string" required>
+      Leave type name (e.g., `"Annual"`, `"Sick"`, `"Casual"`, `"Maternity"`).
+    </ParamField>
+    <ParamField body="perAnnum" type="number" required>
+      Number of leave days allocated per year for this leave type.
+    </ParamField>
+    <ParamField body="frequency" type="string" required>
+      How the allowance is credited — e.g., `"yearly"`, `"monthly"`, or `"quarterly"`.
+    </ParamField>
+    <ParamField body="carryForward" type="number" required>
+      Maximum number of unused days that can be carried into the next year. Set to `0` to disable carry-forward.
+    </ParamField>
+    <ParamField body="rules" type="string" required>
+      A plain-text description of any special rules or conditions governing this leave type.
+    </ParamField>
+    <ParamField body="gender" type="string" required>
+      Restricts the leave type to a specific gender. Accepted values: `"all"`, `"male"`, or `"female"`.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="description" type="string">
+  Optional free-text description of the overall leave policy configuration.
+</ParamField>
+
+<Tip>
+  The `gender` field lets you configure gender-specific leave types such as maternity or paternity leave. Set it to `"female"` for maternity leave, `"male"` for paternity leave, and `"all"` for leave types available to every employee regardless of gender.
+</Tip>
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST \
+  https://r00buwtnh1.execute-api.ap-south-1.amazonaws.com/live/company/leave/create \
+  -H "Authorization: Bearer <YOUR_COGNITO_ID_TOKEN>" \
+  -H "x-api-key: <YOUR_API_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "metadata": "leavePolicy",
+    "location": {
+      "country": "IN",
+      "province": "Delhi",
+      "city": "New Delhi",
+      "locationName": "HQ - New Delhi"
+    },
+    "leavePolicy": [
+      {
+        "type": "Annual",
+        "perAnnum": 18,
+        "frequency": "yearly",
+        "carryForward": 5,
+        "rules": "Minimum 2 weeks notice required for annual leave exceeding 3 consecutive days.",
+        "gender": "all"
+      },
+      {
+        "type": "Sick",
+        "perAnnum": 10,
+        "frequency": "yearly",
+        "carryForward": 0,
+        "rules": "Medical certificate required for absences exceeding 2 consecutive days.",
+        "gender": "all"
+      },
+      {
+        "type": "Casual",
+        "perAnnum": 6,
+        "frequency": "yearly",
+        "carryForward": 0,
+        "rules": "Cannot be combined with annual leave. Max 3 consecutive days.",
+        "gender": "all"
+      },
+      {
+        "type": "Maternity",
+        "perAnnum": 182,
+        "frequency": "yearly",
+        "carryForward": 0,
+        "rules": "As per the Maternity Benefit Act. Requires medical documentation.",
+        "gender": "female"
+      },
+      {
+        "type": "Paternity",
+        "perAnnum": 15,
+        "frequency": "yearly",
+        "carryForward": 0,
+        "rules": "Must be taken within 3 months of child birth or adoption.",
+        "gender": "male"
+      }
+    ],
+    "description": "Standard leave policy for New Delhi headquarters employees."
+  }'
+```
+
+```json Request Body
+{
+  "metadata": "leavePolicy",
+  "location": {
+    "country": "IN",
+    "province": "Delhi",
+    "city": "New Delhi",
+    "locationName": "HQ - New Delhi"
+  },
+  "leavePolicy": [
+    {
+      "type": "Annual",
+      "perAnnum": 18,
+      "frequency": "yearly",
+      "carryForward": 5,
+      "rules": "Minimum 2 weeks notice required for annual leave exceeding 3 consecutive days.",
+      "gender": "all"
+    },
+    {
+      "type": "Sick",
+      "perAnnum": 10,
+      "frequency": "yearly",
+      "carryForward": 0,
+      "rules": "Medical certificate required for absences exceeding 2 consecutive days.",
+      "gender": "all"
+    },
+    {
+      "type": "Casual",
+      "perAnnum": 6,
+      "frequency": "yearly",
+      "carryForward": 0,
+      "rules": "Cannot be combined with annual leave. Max 3 consecutive days.",
+      "gender": "all"
+    },
+    {
+      "type": "Maternity",
+      "perAnnum": 182,
+      "frequency": "yearly",
+      "carryForward": 0,
+      "rules": "As per the Maternity Benefit Act. Requires medical documentation.",
+      "gender": "female"
+    },
+    {
+      "type": "Paternity",
+      "perAnnum": 15,
+      "frequency": "yearly",
+      "carryForward": 0,
+      "rules": "Must be taken within 3 months of child birth or adoption.",
+      "gender": "male"
+    }
+  ],
+  "description": "Standard leave policy for New Delhi headquarters employees."
+}
+```
+
+</CodeGroup>
+
+```json Response
+{
+  "message": "Leave policy created successfully.",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "policyId": "lp_hq_newdelhi_001",
+    "locationName": "HQ - New Delhi",
+    "createdAt": "2024-06-10T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+## PUT /company/leave/update
+
+**Update Leave Policy** — modify an existing leave policy for a company location.
+
+Send the full updated policy structure. The request body follows the same schema as `POST /company/leave/create`. Retrieve the current policy first, apply your changes, and submit the complete updated object.
+
+<CodeGroup>
+
+```bash cURL
+curl -X PUT \
+  https://r00buwtnh1.execute-api.ap-south-1.amazonaws.com/live/company/leave/update \
+  -H "Authorization: Bearer <YOUR_COGNITO_ID_TOKEN>" \
+  -H "x-api-key: <YOUR_API_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "metadata": "leavePolicy",
+    "location": {
+      "country": "IN",
+      "province": "Delhi",
+      "city": "New Delhi",
+      "locationName": "HQ - New Delhi"
+    },
+    "leavePolicy": [
+      {
+        "type": "Annual",
+        "perAnnum": 20,
+        "frequency": "yearly",
+        "carryForward": 7,
+        "rules": "Minimum 2 weeks notice required for annual leave exceeding 3 consecutive days.",
+        "gender": "all"
+      },
+      {
+        "type": "Sick",
+        "perAnnum": 12,
+        "frequency": "yearly",
+        "carryForward": 0,
+        "rules": "Medical certificate required for absences exceeding 2 consecutive days.",
+        "gender": "all"
+      }
+    ],
+    "description": "Updated leave policy — annual leave increased to 20 days from FY2025."
+  }'
+```
+
+```json Request Body
+{
+  "metadata": "leavePolicy",
+  "location": {
+    "country": "IN",
+    "province": "Delhi",
+    "city": "New Delhi",
+    "locationName": "HQ - New Delhi"
+  },
+  "leavePolicy": [
+    {
+      "type": "Annual",
+      "perAnnum": 20,
+      "frequency": "yearly",
+      "carryForward": 7,
+      "rules": "Minimum 2 weeks notice required for annual leave exceeding 3 consecutive days.",
+      "gender": "all"
+    },
+    {
+      "type": "Sick",
+      "perAnnum": 12,
+      "frequency": "yearly",
+      "carryForward": 0,
+      "rules": "Medical certificate required for absences exceeding 2 consecutive days.",
+      "gender": "all"
+    }
+  ],
+  "description": "Updated leave policy — annual leave increased to 20 days from FY2025."
+}
+```
+
+</CodeGroup>
+
+```json Response
+{
+  "message": "Leave policy updated successfully.",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "policyId": "lp_hq_newdelhi_001",
+    "locationName": "HQ - New Delhi",
+    "updatedAt": "2024-06-11T09:30:00.000Z"
+  }
+}
+```
+
+---
+
+## GET /company/leave/get — Holidays
+
+The `GET /company/leave/get` endpoint serves both national and regional holiday data depending on the `metadata` query parameter you provide.
+
+<Tabs>
+  <Tab title="National Holidays">
+
+### National Holidays
+
+**Get National Holidays** — fetch the list of nationally observed public holidays for a given country and year.
+
+#### Query Parameters
+
+<ParamField query="metadata" type="string" required>
+  Must be `"nationalHolidays"`.
+</ParamField>
+
+<ParamField query="year" type="integer" required>
+  The four-digit calendar year (e.g., `2024`).
+</ParamField>
+
+<ParamField query="country" type="string" required>
+  ISO 3166-1 alpha-2 country code (e.g., `"IN"` for India, `"US"` for United States).
+</ParamField>
+
+```bash
+curl "https://r00buwtnh1.execute-api.ap-south-1.amazonaws.com/live/company/leave/get?metadata=nationalHolidays&year=2024&country=IN" \
+  -H "Authorization: Bearer <YOUR_COGNITO_ID_TOKEN>" \
+  -H "x-api-key: <YOUR_API_KEY>"
+```
+
+```json Response
+{
+  "message": "National holidays retrieved successfully.",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "country": "IN",
+    "year": 2024,
+    "holidays": [
+      {
+        "date": "2024-01-26",
+        "name": "Republic Day",
+        "type": "National",
+        "description": "Celebrates the date the Constitution of India came into effect.",
+        "isOptional": false
+      },
+      {
+        "date": "2024-08-15",
+        "name": "Independence Day",
+        "type": "National",
+        "description": "Marks India's independence from British rule in 1947.",
+        "isOptional": false
+      },
+      {
+        "date": "2024-10-02",
+        "name": "Gandhi Jayanti",
+        "type": "National",
+        "description": "Birth anniversary of Mahatma Gandhi.",
+        "isOptional": false
+      },
+      {
+        "date": "2024-11-01",
+        "name": "Diwali",
+        "type": "Festival",
+        "description": "Festival of Lights.",
+        "isOptional": true
+      }
+    ]
+  }
+}
+```
+
+### Holiday Response Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `date` | string | Holiday date in `YYYY-MM-DD` format |
+| `name` | string | Official name of the holiday |
+| `type` | string | Classification — e.g., `National`, `Festival`, `Regional` |
+| `description` | string | Brief description of the observance |
+| `isOptional` | boolean | `true` if the holiday is optional (restricted); `false` if it is mandatory |
+
+  </Tab>
+  <Tab title="Regional Holidays">
+
+### Regional / Province Holidays
+
+**Get Province/Regional Holidays** — fetch holidays specific to a state, province, or city. Use this when your company policy grants region-specific public holidays in addition to national ones.
+
+#### Query Parameters
+
+<ParamField query="metadata" type="string" required>
+  Must be `"provinceHolidays"`.
+</ParamField>
+
+<ParamField query="year" type="integer" required>
+  The four-digit calendar year (e.g., `2024`).
+</ParamField>
+
+<ParamField query="country" type="string" required>
+  ISO 3166-1 alpha-2 country code (e.g., `"IN"`).
+</ParamField>
+
+<ParamField query="province" type="string" required>
+  State or province name (e.g., `"Delhi"`).
+</ParamField>
+
+<ParamField query="city" type="string">
+  City name for city-specific holidays (e.g., `"New Delhi"`).
+</ParamField>
+
+<ParamField query="locationName" type="string">
+  The office location name as configured in your leave policy (e.g., `"HQ - New Delhi"`).
+</ParamField>
+
+```bash
+curl "https://r00buwtnh1.execute-api.ap-south-1.amazonaws.com/live/company/leave/get?metadata=provinceHolidays&year=2024&country=IN&province=Delhi&city=New%20Delhi&locationName=HQ%20-%20New%20Delhi" \
+  -H "Authorization: Bearer <YOUR_COGNITO_ID_TOKEN>" \
+  -H "x-api-key: <YOUR_API_KEY>"
+```
+
+```json Response
+{
+  "message": "Province holidays retrieved successfully.",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "country": "IN",
+    "province": "Delhi",
+    "city": "New Delhi",
+    "locationName": "HQ - New Delhi",
+    "year": 2024,
+    "holidays": [
+      {
+        "date": "2024-04-14",
+        "name": "Dr. B.R. Ambedkar Jayanti",
+        "type": "Regional",
+        "description": "Birth anniversary of Dr. B.R. Ambedkar, observed as a public holiday in Delhi.",
+        "isOptional": false
+      },
+      {
+        "date": "2024-11-04",
+        "name": "Chhath Puja",
+        "type": "Regional",
+        "description": "Regional festival widely observed in Delhi and surrounding areas.",
+        "isOptional": true
+      }
+    ]
+  }
+}
+```
+
+  </Tab>
+</Tabs>

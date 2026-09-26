@@ -1,0 +1,141 @@
+---
+title: "StaffGlimpse API Base URLs and Service Endpoints"
+sidebarTitle: "Base URLs"
+description: "Complete reference of production and development base URLs for all StaffGlimpse service domains including Company, User, Attendance, Leave, and Documents."
+---
+
+StaffGlimpse routes different API domains through separate AWS API Gateway endpoints. Each service has its own base URL — use the correct base URL when constructing requests for each domain. Mixing up base URLs across services is the most common source of `404` errors when first integrating with the platform.
+
+<Tip>
+  All endpoints require both the `Authorization: Bearer <token>` and `x-api-key` headers. The one exception is document downloads from CloudFront, which use an `x-token` header instead of `Authorization`.
+</Tip>
+
+## Production Base URLs
+
+All production services are live at the following endpoints. There are no path prefixes beyond the stage segment (`/live`) already included in each URL.
+
+| Service | Base URL |
+|---|---|
+| Company | `https://r00buwtnh1.execute-api.ap-south-1.amazonaws.com/live` |
+| User / Profile | `https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live` |
+| Metadata | `https://0wk40w2jbj.execute-api.ap-south-1.amazonaws.com/live` |
+| Messages | `https://7gt46stdyc.execute-api.ap-south-1.amazonaws.com/live` |
+| Attendance | `https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live` |
+| Documents | `https://6e52pmjmy4.execute-api.ap-south-1.amazonaws.com/live` |
+| Leave | `https://5bknc0zrv5.execute-api.ap-south-1.amazonaws.com/live` |
+| Document Cloud | `https://d2ikeisatr21la.cloudfront.net` |
+
+## Regions
+
+All production APIs are served from `ap-south-1` (Mumbai, India). Latency may vary depending on your geographic location. If you are building an integration for users in Europe or the Americas, account for the additional round-trip time when setting client-side timeouts.
+
+<Info>
+  The Document Cloud base URL (`d2ikeisatr21la.cloudfront.net`) is a CloudFront distribution, not an API Gateway endpoint. It is globally cached via AWS edge locations — download latency is lower than the API Gateway services regardless of your region.
+</Info>
+
+## Endpoint Quick Reference
+
+Use the tables below to locate the right path for each operation. Combine each path with the corresponding base URL from the Production Base URLs table above.
+
+<Accordion title="Company">
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/company` | Retrieve the authenticated user's company profile |
+| `POST` | `/company/register` | Register a new company |
+| `GET` | `/company/department` | List all departments |
+| `POST` | `/company/department` | Create a new department |
+| `PUT` | `/company/department` | Update an existing department |
+| `GET` | `/company/role` | List all roles |
+| `POST` | `/company/role` | Create a new role |
+| `PUT` | `/company/role` | Update an existing role |
+
+</Accordion>
+
+<Accordion title="Users / Profile">
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/profile` | List all user profiles in the tenant |
+| `GET` | `/profile/get` | Retrieve a single user profile |
+| `POST` | `/profile/create` | Create a new user profile |
+| `PUT` | `/profile/update` | Update an existing user profile |
+| `POST` | `/profile/lock` | Lock a user account |
+| `POST` | `/profile/unlock` | Unlock a locked user account |
+| `POST` | `/profile/delete` | Soft-delete a user profile |
+
+</Accordion>
+
+<Accordion title="Metadata">
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/metadata/get` | Retrieve metadata records |
+| `POST` | `/metadata/create` | Create new metadata entries |
+| `PUT` | `/metadata/update` | Update existing metadata entries |
+
+</Accordion>
+
+<Accordion title="Messages">
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/message/get` | Retrieve messages or notifications |
+| `GET` | `/message/get/count` | Retrieve unread message count |
+| `POST` | `/message/create` | Send a new message or notification |
+| `PUT` | `/message/update` | Mark a message as read or update its status |
+
+</Accordion>
+
+<Accordion title="Attendance">
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/attendance/signin/status` | Check the current sign-in status for a user |
+| `POST` | `/attendance/signin` | Record a sign-in event |
+| `POST` | `/attendance/signout` | Record a sign-out event |
+| `GET` | `/attendance/pending/week` | List pending attendance records for the current week |
+| `POST` | `/attendance/approve/week` | Approve pending weekly attendance records |
+| `GET` | `/attendance/report/monthly` | Generate a monthly attendance report |
+
+</Accordion>
+
+<Accordion title="Documents">
+
+| Method | Path | Base |
+|---|---|---|
+| `POST` | `/document` | Document API |
+| `GET` | `/document/get` | Document API |
+| `PUT` | `/document/update` | Document API |
+| `GET` | `/{documentId}` | Document Cloud (CloudFront) |
+
+</Accordion>
+
+<Accordion title="Leave — Company Policies">
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/company/leave/create` | Create a new leave policy |
+| `PUT` | `/company/leave/update` | Update an existing leave policy |
+| `GET` | `/company/leave/get` | Retrieve leave policies |
+
+</Accordion>
+
+<Accordion title="Leave — User Requests">
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/leave/request/create` | Submit a new leave request |
+| `POST` | `/leave/request/update` | Update or action a leave request |
+| `GET` | `/leave/request/get` | Retrieve leave requests |
+| `GET` | `/leave/ledger/get` | Retrieve the leave balance ledger for a user |
+
+</Accordion>
+
+## Content Type
+
+All request bodies must use `Content-Type: application/json` unless the endpoint accepts file uploads. The only exception is `POST /document`, which requires `Content-Type: multipart/form-data` so that binary file data can be included alongside form fields.
+
+<Warning>
+  Sending a JSON body to `POST /document` will result in an error. Always use `multipart/form-data` for that endpoint.
+</Warning>

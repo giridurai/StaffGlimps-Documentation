@@ -1,0 +1,692 @@
+---
+title: "Users API — Employee Profile Management"
+sidebarTitle: "Users"
+description: "REST endpoints for creating, listing, updating, locking, unlocking, and deleting employee user profiles in StaffGlimpse."
+---
+
+The Users API (served from the Profile service) manages the full lifecycle of employee accounts — from onboarding to offboarding. Every user belongs to your company tenant and can be assigned an `ADMIN` or `USER` role. Use these endpoints to provision new employees, search and filter your workforce, update profile details, and control account access through locking, unlocking, and soft-deletion.
+
+**Base URL:** `https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live`
+
+<Note>
+  Every request to the Users API requires two headers: `Authorization: Bearer <AWS_Cognito_ID_Token>` and `x-api-key: <static_shared_key>`.
+</Note>
+
+---
+
+## GET /profile
+
+Retrieve the authenticated user's own profile. No query parameters are required — the caller is identified from the `Authorization` token.
+
+**Endpoint**
+
+```
+GET https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile
+```
+
+<CodeGroup>
+
+```bash cURL
+curl --request GET \
+  --url "https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile" \
+  --header "Authorization: Bearer <AWS_Cognito_ID_Token>" \
+  --header "x-api-key: <static_shared_key>"
+```
+
+```javascript JavaScript
+const response = await fetch(
+  "https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile",
+  {
+    method: "GET",
+    headers: {
+      "Authorization": "Bearer <AWS_Cognito_ID_Token>",
+      "x-api-key": "<static_shared_key>",
+    },
+  }
+);
+const data = await response.json();
+```
+
+</CodeGroup>
+
+**Response**
+
+```json
+{
+  "message": "Profile fetched successfully",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "emailId": "jane.smith@acme.com",
+    "phoneNumber": "5550001234",
+    "userRole": "ADMIN",
+    "isLocked": false,
+    "isActive": true,
+    "companyId": "comp_01HZ",
+    "managerName": "John Doe"
+  }
+}
+```
+
+<ResponseField name="result.firstName" type="string">
+  The user's first name.
+</ResponseField>
+<ResponseField name="result.lastName" type="string">
+  The user's last name.
+</ResponseField>
+<ResponseField name="result.emailId" type="string">
+  The user's email address, also used as their login identifier.
+</ResponseField>
+<ResponseField name="result.phoneNumber" type="string">
+  The user's phone number (without country code).
+</ResponseField>
+<ResponseField name="result.userRole" type="string">
+  The user's platform role — either `ADMIN` or `USER`.
+</ResponseField>
+<ResponseField name="result.isLocked" type="boolean">
+  `true` if the account has been locked and the user cannot log in.
+</ResponseField>
+<ResponseField name="result.isActive" type="boolean">
+  `true` if the account is active within the tenant.
+</ResponseField>
+<ResponseField name="result.companyId" type="string">
+  The tenant company identifier this user belongs to.
+</ResponseField>
+<ResponseField name="result.managerName" type="string">
+  The full name of the user's assigned manager.
+</ResponseField>
+
+---
+
+## GET /profile/get
+
+Search and list employee profiles across your tenant. Apply filters using query parameters to narrow results by email, name, status, or apply sorting and pagination.
+
+**Endpoint**
+
+```
+GET https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/get
+```
+
+**Query Parameters**
+
+<ParamField query="emailId" type="string">
+  Filter results to the profile matching this email address.
+</ParamField>
+<ParamField query="firstName" type="string">
+  Filter profiles whose first name matches this value (case-insensitive).
+</ParamField>
+<ParamField query="isActive" type="boolean">
+  When `true`, return only active users. When `false`, return only inactive users. Omit to return all.
+</ParamField>
+<ParamField query="sort" type="boolean">
+  When `true`, sort results in ascending alphabetical order by name.
+</ParamField>
+<ParamField query="limit" type="integer">
+  Maximum number of records to return in a single response.
+</ParamField>
+
+<CodeGroup>
+
+```bash cURL
+curl --request GET \
+  --url "https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/get?isActive=true&limit=25&sort=true" \
+  --header "Authorization: Bearer <AWS_Cognito_ID_Token>" \
+  --header "x-api-key: <static_shared_key>"
+```
+
+```javascript JavaScript
+const params = new URLSearchParams({
+  isActive: "true",
+  limit: "25",
+  sort: "true",
+});
+
+const response = await fetch(
+  `https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/get?${params}`,
+  {
+    method: "GET",
+    headers: {
+      "Authorization": "Bearer <AWS_Cognito_ID_Token>",
+      "x-api-key": "<static_shared_key>",
+    },
+  }
+);
+const data = await response.json();
+```
+
+</CodeGroup>
+
+**Response**
+
+```json
+{
+  "message": "Profiles fetched successfully",
+  "responseCode": 200,
+  "response": "Success",
+  "result": [
+    {
+      "customerId": 1042,
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "emailId": "jane.smith@acme.com",
+      "phoneNumber": "5550001234",
+      "userRole": "ADMIN",
+      "isLocked": false,
+      "isActive": true,
+      "companyId": "comp_01HZ",
+      "managerName": "John Doe"
+    },
+    {
+      "customerId": 1043,
+      "firstName": "Carlos",
+      "lastName": "Rivera",
+      "emailId": "carlos.rivera@acme.com",
+      "phoneNumber": "5550005678",
+      "userRole": "USER",
+      "isLocked": false,
+      "isActive": true,
+      "companyId": "comp_01HZ",
+      "managerName": "Jane Smith"
+    }
+  ]
+}
+```
+
+---
+
+## POST /profile/create
+
+Provision a new employee user account within your company tenant. On success, the API returns the new user's `customerId`, which you must store for all subsequent operations on that profile.
+
+**Endpoint**
+
+```
+POST https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/create
+```
+
+**Request Body**
+
+<ParamField body="emailId" type="string" required>
+  The employee's email address. Used as their login identifier — must be unique within the tenant.
+</ParamField>
+<ParamField body="firstName" type="string" required>
+  The employee's first name.
+</ParamField>
+<ParamField body="lastName" type="string" required>
+  The employee's last name.
+</ParamField>
+<ParamField body="password" type="string" required>
+  Initial account password. Enforce your organization's password policy here.
+</ParamField>
+<ParamField body="countryCode" type="string" required>
+  The international dialing code for the employee's phone number, e.g. `"+1"` or `"+44"`.
+</ParamField>
+<ParamField body="phoneNumber" type="string" required>
+  The employee's phone number without the country code.
+</ParamField>
+<ParamField body="userRole" type="string" required>
+  Platform role for this user. Must be either `ADMIN` or `USER`.
+</ParamField>
+<ParamField body="address" type="object">
+  Optional address information for the employee.
+  <Expandable title="address fields">
+    <ParamField body="isPhysicalAndMailingAddressSame" type="boolean">
+      Set to `true` to use the physical address as the mailing address.
+    </ParamField>
+    <ParamField body="physicalAddress" type="object">
+      The employee's physical (residential) address.
+      <Expandable title="physicalAddress fields">
+        <ParamField body="addLine1" type="string">
+          Street address line 1.
+        </ParamField>
+        <ParamField body="addLine2" type="string">
+          Street address line 2 (apartment, suite, etc.).
+        </ParamField>
+        <ParamField body="city" type="string">
+          City name.
+        </ParamField>
+        <ParamField body="state" type="string">
+          State or province.
+        </ParamField>
+        <ParamField body="pinCode" type="string">
+          Postal / ZIP code.
+        </ParamField>
+      </Expandable>
+    </ParamField>
+    <ParamField body="mailingAddress" type="object">
+      The employee's mailing address (if different from physical). Same sub-fields as `physicalAddress`.
+      <Expandable title="mailingAddress fields">
+        <ParamField body="addLine1" type="string">
+          Street address line 1.
+        </ParamField>
+        <ParamField body="addLine2" type="string">
+          Street address line 2.
+        </ParamField>
+        <ParamField body="city" type="string">
+          City name.
+        </ParamField>
+        <ParamField body="state" type="string">
+          State or province.
+        </ParamField>
+        <ParamField body="pinCode" type="string">
+          Postal / ZIP code.
+        </ParamField>
+      </Expandable>
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<CodeGroup>
+
+```bash cURL
+curl --request POST \
+  --url "https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/create" \
+  --header "Authorization: Bearer <AWS_Cognito_ID_Token>" \
+  --header "x-api-key: <static_shared_key>" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "emailId": "carlos.rivera@acme.com",
+    "firstName": "Carlos",
+    "lastName": "Rivera",
+    "password": "Str0ng!Pass#2024",
+    "countryCode": "+1",
+    "phoneNumber": "5550005678",
+    "userRole": "USER",
+    "address": {
+      "isPhysicalAndMailingAddressSame": true,
+      "physicalAddress": {
+        "addLine1": "742 Evergreen Terrace",
+        "addLine2": "Apt 3B",
+        "city": "Springfield",
+        "state": "IL",
+        "pinCode": "62701"
+      }
+    }
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch(
+  "https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/create",
+  {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer <AWS_Cognito_ID_Token>",
+      "x-api-key": "<static_shared_key>",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      emailId: "carlos.rivera@acme.com",
+      firstName: "Carlos",
+      lastName: "Rivera",
+      password: "Str0ng!Pass#2024",
+      countryCode: "+1",
+      phoneNumber: "5550005678",
+      userRole: "USER",
+      address: {
+        isPhysicalAndMailingAddressSame: true,
+        physicalAddress: {
+          addLine1: "742 Evergreen Terrace",
+          addLine2: "Apt 3B",
+          city: "Springfield",
+          state: "IL",
+          pinCode: "62701",
+        },
+      },
+    }),
+  }
+);
+const data = await response.json();
+```
+
+</CodeGroup>
+
+**Response**
+
+```json
+{
+  "message": "User created successfully",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "message": "User profile created",
+    "customerId": 1043
+  }
+}
+```
+
+<Note>
+  The `customerId` returned in `result.customerId` is the numeric identifier for this user. Store it — you must supply it as a parameter for all update, lock, unlock, and delete operations on this profile.
+</Note>
+
+---
+
+## PUT /profile/update
+
+Update an existing employee's profile information. Supply the `customerId` of the target user along with only the fields you want to change.
+
+**Endpoint**
+
+```
+PUT https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/update
+```
+
+**Request Body**
+
+<ParamField body="customerId" type="integer" required>
+  The numeric ID of the user to update. Returned by `POST /profile/create`.
+</ParamField>
+<ParamField body="firstName" type="string">
+  Updated first name.
+</ParamField>
+<ParamField body="lastName" type="string">
+  Updated last name.
+</ParamField>
+<ParamField body="emailId" type="string">
+  Updated email address. Must remain unique within the tenant.
+</ParamField>
+<ParamField body="phoneNumber" type="string">
+  Updated phone number (without country code).
+</ParamField>
+<ParamField body="isActive" type="boolean">
+  Set to `false` to deactivate the account without deleting it.
+</ParamField>
+<ParamField body="userRole" type="string">
+  Updated platform role — `ADMIN` or `USER`.
+</ParamField>
+
+<CodeGroup>
+
+```bash cURL
+curl --request PUT \
+  --url "https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/update" \
+  --header "Authorization: Bearer <AWS_Cognito_ID_Token>" \
+  --header "x-api-key: <static_shared_key>" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "customerId": 1043,
+    "firstName": "Carlo",
+    "userRole": "ADMIN"
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch(
+  "https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/update",
+  {
+    method: "PUT",
+    headers: {
+      "Authorization": "Bearer <AWS_Cognito_ID_Token>",
+      "x-api-key": "<static_shared_key>",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      customerId: 1043,
+      firstName: "Carlo",
+      userRole: "ADMIN",
+    }),
+  }
+);
+const data = await response.json();
+```
+
+</CodeGroup>
+
+**Response**
+
+```json
+{
+  "message": "Profile updated successfully",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "customerId": 1043,
+    "firstName": "Carlo",
+    "userRole": "ADMIN"
+  }
+}
+```
+
+---
+
+## POST /profile/lock
+
+Lock a user account to immediately prevent the employee from logging in — without permanently deleting their record. Typical use cases include an active investigation, a compliance hold, or a temporary suspension pending HR review.
+
+**Endpoint**
+
+```
+POST https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/lock
+```
+
+**Request Body**
+
+<ParamField body="customerId" type="integer" required>
+  The numeric ID of the user to lock.
+</ParamField>
+<ParamField body="lockReason" type="string" required>
+  A human-readable explanation for why the account is being locked. This is stored in the audit trail and displayed to administrators who view the user's profile.
+</ParamField>
+
+<CodeGroup>
+
+```bash cURL
+curl --request POST \
+  --url "https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/lock" \
+  --header "Authorization: Bearer <AWS_Cognito_ID_Token>" \
+  --header "x-api-key: <static_shared_key>" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "customerId": 1043,
+    "lockReason": "Account suspended pending HR investigation — ticket #HR-2024-089"
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch(
+  "https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/lock",
+  {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer <AWS_Cognito_ID_Token>",
+      "x-api-key": "<static_shared_key>",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      customerId: 1043,
+      lockReason: "Account suspended pending HR investigation — ticket #HR-2024-089",
+    }),
+  }
+);
+const data = await response.json();
+```
+
+</CodeGroup>
+
+**Response**
+
+```json
+{
+  "message": "User account locked successfully",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "customerId": 1043,
+    "isLocked": true,
+    "lockReason": "Account suspended pending HR investigation — ticket #HR-2024-089"
+  }
+}
+```
+
+<Warning>
+  Locking an account takes effect immediately. The user will be signed out of any active sessions and will not be able to authenticate until the account is unlocked.
+</Warning>
+
+---
+
+## POST /profile/unlock
+
+Restore access to a previously locked user account. Use this endpoint once an investigation is resolved, a compliance hold is lifted, or any other reason for the lock has been cleared.
+
+**Endpoint**
+
+```
+POST https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/unlock
+```
+
+**Request Body**
+
+<ParamField body="customerId" type="integer" required>
+  The numeric ID of the user to unlock.
+</ParamField>
+
+<CodeGroup>
+
+```bash cURL
+curl --request POST \
+  --url "https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/unlock" \
+  --header "Authorization: Bearer <AWS_Cognito_ID_Token>" \
+  --header "x-api-key: <static_shared_key>" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "customerId": 1043
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch(
+  "https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/unlock",
+  {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer <AWS_Cognito_ID_Token>",
+      "x-api-key": "<static_shared_key>",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ customerId: 1043 }),
+  }
+);
+const data = await response.json();
+```
+
+</CodeGroup>
+
+**Response**
+
+```json
+{
+  "message": "User account unlocked successfully",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "customerId": 1043,
+    "isLocked": false
+  }
+}
+```
+
+---
+
+## POST /profile/delete
+
+Soft-delete an employee profile, removing it from active listings while preserving the record in the database for audit and compliance purposes. The `deleteReason` is recorded in the audit trail.
+
+**Endpoint**
+
+```
+POST https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/delete
+```
+
+**Request Body**
+
+<ParamField body="customerId" type="integer" required>
+  The numeric ID of the user to delete.
+</ParamField>
+<ParamField body="deleteReason" type="string" required>
+  A human-readable explanation for the deletion (e.g., employee resignation, contract end). Stored in the audit log.
+</ParamField>
+
+<CodeGroup>
+
+```bash cURL
+curl --request POST \
+  --url "https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/delete" \
+  --header "Authorization: Bearer <AWS_Cognito_ID_Token>" \
+  --header "x-api-key: <static_shared_key>" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "customerId": 1043,
+    "deleteReason": "Employee resigned on 2024-11-30. Final payroll processed."
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch(
+  "https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/delete",
+  {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer <AWS_Cognito_ID_Token>",
+      "x-api-key": "<static_shared_key>",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      customerId: 1043,
+      deleteReason: "Employee resigned on 2024-11-30. Final payroll processed.",
+    }),
+  }
+);
+const data = await response.json();
+```
+
+</CodeGroup>
+
+**Response**
+
+```json
+{
+  "message": "User profile deleted successfully",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "customerId": 1043,
+    "isDeleted": true,
+    "deleteReason": "Employee resigned on 2024-11-30. Final payroll processed."
+  }
+}
+```
+
+<Info>
+  This is a **soft delete**. The profile record is marked as deleted and excluded from active queries, but is never permanently removed. Your historical payroll records, attendance logs, and audit trails that reference this `customerId` remain intact.
+</Info>
+
+---
+
+## Endpoint Summary
+
+<CardGroup cols={2}>
+  <Card title="GET /profile" icon="user">
+    Retrieve the authenticated caller's own profile.
+  </Card>
+  <Card title="GET /profile/get" icon="magnifying-glass">
+    Search and list employee profiles with filters.
+  </Card>
+  <Card title="POST /profile/create" icon="user-plus">
+    Provision a new employee account in your tenant.
+  </Card>
+  <Card title="PUT /profile/update" icon="pen-to-square">
+    Update an existing employee's profile fields.
+  </Card>
+  <Card title="POST /profile/lock" icon="lock">
+    Lock an account to prevent login immediately.
+  </Card>
+  <Card title="POST /profile/unlock" icon="lock-open">
+    Restore login access to a locked account.
+  </Card>
+  <Card title="POST /profile/delete" icon="user-minus">
+    Soft-delete a profile while preserving audit records.
+  </Card>
+</CardGroup>

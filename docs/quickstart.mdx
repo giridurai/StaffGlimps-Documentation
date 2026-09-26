@@ -1,0 +1,139 @@
+---
+title: "Get Started with StaffGlimpse in 5 Steps"
+sidebarTitle: "Quickstart"
+description: "Register a company, create a department and user, record attendance, and submit a leave request using the StaffGlimpse REST APIs."
+---
+
+Get up and running by making five API calls that cover the core HR workflow — from registering your company tenant all the way through submitting an employee leave request. Each step builds on the previous one, so work through them in order the first time you integrate.
+
+<Steps>
+  <Step title="Register Your Company">
+    Create your company tenant by posting your organisation's details to the registration endpoint. This provisions the tenant and returns credentials you will use for all subsequent requests.
+
+    ```bash
+    curl -X POST https://r00buwtnh1.execute-api.ap-south-1.amazonaws.com/live/company/register \
+      -H "Content-Type: application/json" \
+      -H "x-api-key: <YOUR_API_KEY>" \
+      -H "Authorization: Bearer <YOUR_TOKEN>" \
+      -d '{
+        "name": "Acme Corporation",
+        "email": "admin@acme.com",
+        "password": "SecurePass123!",
+        "confirmPassword": "SecurePass123!"
+      }'
+    ```
+  </Step>
+
+  <Step title="Create a Department">
+    Add at least one department to your company before creating users. Departments act as the primary organisational unit that employees belong to.
+
+    ```bash
+    curl -X POST https://r00buwtnh1.execute-api.ap-south-1.amazonaws.com/live/company/department/create \
+      -H "Content-Type: application/json" \
+      -H "x-api-key: <YOUR_API_KEY>" \
+      -H "Authorization: Bearer <YOUR_TOKEN>" \
+      -d '{
+        "departmentName": "Engineering",
+        "description": "Software development team",
+        "noOfEmployees": 45,
+        "isActive": true,
+        "status": "Active"
+      }'
+    ```
+  </Step>
+
+  <Step title="Create a User">
+    Create an employee profile under your company tenant. Supply the user's personal details, role, and address information. Set `userRole` to `"USER"` for a standard employee or `"ADMIN"` for an administrator.
+
+    ```bash
+    curl -X POST https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/create \
+      -H "Content-Type: application/json" \
+      -H "x-api-key: <YOUR_API_KEY>" \
+      -H "Authorization: Bearer <YOUR_TOKEN>" \
+      -d '{
+        "emailId": "john.doe@acme.com",
+        "firstName": "John",
+        "lastName": "Doe",
+        "password": "UserPass123!",
+        "countryCode": "+1",
+        "phoneNumber": "5551234567",
+        "userRole": "USER",
+        "address": {
+          "physicalAddress": {
+            "addLine1": "123 Main St",
+            "addLine2": "Suite 100",
+            "state": "CA",
+            "city": "San Francisco",
+            "pinCode": "94105"
+          },
+          "mailingAddress": {
+            "addLine1": "123 Main St",
+            "addLine2": "Suite 100",
+            "state": "CA",
+            "city": "San Francisco",
+            "pinCode": "94105"
+          },
+          "isPhysicalAndMailingAddressSame": true
+        }
+      }'
+    ```
+  </Step>
+
+  <Step title="Punch In">
+    Record the employee's attendance sign-in event. Include GPS coordinates and an accuracy value to satisfy any location-based attendance policies your company has configured.
+
+    ```bash
+    curl -X POST https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live/attendance/signin \
+      -H "Content-Type: application/json" \
+      -H "x-api-key: <YOUR_API_KEY>" \
+      -H "Authorization: Bearer <YOUR_TOKEN>" \
+      -d '{
+        "latitude": 37.7749,
+        "longitude": -122.4194,
+        "address": "123 Market St, San Francisco, CA",
+        "accuracy": 10,
+        "source": "web"
+      }'
+    ```
+  </Step>
+
+  <Step title="Submit a Leave Request">
+    Submit a leave request on behalf of the employee. Provide the leave type, date range, number of days, and a reason. Attach supporting documents as needed — pass an empty array if none are required.
+
+    ```bash
+    curl -X POST https://5bknc0zrv5.execute-api.ap-south-1.amazonaws.com/live/leave/request/create \
+      -H "Content-Type: application/json" \
+      -H "x-api-key: <YOUR_API_KEY>" \
+      -H "Authorization: Bearer <YOUR_TOKEN>" \
+      -d '{
+        "leaveType": "Annual",
+        "fromDate": "2024-12-20",
+        "toDate": "2024-12-23",
+        "days": 4,
+        "reason": "Family vacation",
+        "documents": []
+      }'
+    ```
+  </Step>
+</Steps>
+
+<Note>
+  All StaffGlimpse API responses follow a standard envelope: `{ message, responseCode, response, result }`. A `responseCode` of `200` means the request succeeded. Check `message` for a human-readable summary and `result` for the domain-specific payload.
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="lock" href="/docs/authentication">
+    Learn how to obtain a Cognito ID token and correctly pass both required headers on every request.
+  </Card>
+  <Card title="Company Setup" icon="building" href="/docs/guides/company-setup">
+    Follow the full guide to configuring your company, departments, and organisational settings.
+  </Card>
+  <Card title="User Management" icon="users" href="/docs/guides/user-management">
+    Manage the full employee lifecycle — creation, updates, role assignment, and deactivation.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/company">
+    Browse the complete reference documentation for all StaffGlimpse endpoints.
+  </Card>
+</CardGroup>

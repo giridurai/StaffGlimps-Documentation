@@ -1,0 +1,333 @@
+---
+title: "Metadata API — Global Configuration Entries"
+sidebarTitle: "Metadata"
+description: "REST endpoints for creating, listing, and updating configurable metadata key-value entries used for global platform settings in StaffGlimpse."
+---
+
+The Metadata API stores configurable key-value pairs for your company tenant — useful for global settings like organization name, fiscal year start, custom configuration flags, or reference data. Every entry belongs exclusively to your tenant, can be organized into named categories, and toggled active or inactive without deletion. This makes Metadata the right tool for any platform-wide configuration that your HR workflows need to reference at runtime.
+
+**Base URL:** `https://0wk40w2jbj.execute-api.ap-south-1.amazonaws.com/live`
+
+<Note>
+  Every request to the Metadata API requires two headers: `Authorization: Bearer <AWS_Cognito_ID_Token>` and `x-api-key: <static_shared_key>`.
+</Note>
+
+---
+
+## GET /metadata/get
+
+Retrieve metadata entries for your tenant. Use query parameters to filter by status, fetch a specific entry by ID, or control sort order.
+
+**Endpoint**
+
+```
+GET https://0wk40w2jbj.execute-api.ap-south-1.amazonaws.com/live/metadata/get
+```
+
+**Query Parameters**
+
+<ParamField query="isActive" type="boolean">
+  Filter by active status. Pass `true` to return only active entries, `false` to return only inactive entries. Omit to return all.
+</ParamField>
+<ParamField query="sorting" type="boolean">
+  When `true`, sort results in ascending alphabetical order by key name.
+</ParamField>
+<ParamField query="isDeleted" type="boolean">
+  When `true`, include soft-deleted entries in the response. Defaults to `false`.
+</ParamField>
+<ParamField query="metadataId" type="string">
+  Fetch a single specific entry by its unique identifier. When provided, all other filters are ignored.
+</ParamField>
+
+<CodeGroup>
+
+```bash cURL — List All Active Entries
+curl --request GET \
+  --url "https://0wk40w2jbj.execute-api.ap-south-1.amazonaws.com/live/metadata/get?isActive=true&sorting=true" \
+  --header "Authorization: Bearer <AWS_Cognito_ID_Token>" \
+  --header "x-api-key: <static_shared_key>"
+```
+
+```bash cURL — Fetch by ID
+curl --request GET \
+  --url "https://0wk40w2jbj.execute-api.ap-south-1.amazonaws.com/live/metadata/get?metadataId=meta_01ABCXYZ" \
+  --header "Authorization: Bearer <AWS_Cognito_ID_Token>" \
+  --header "x-api-key: <static_shared_key>"
+```
+
+```javascript JavaScript
+const params = new URLSearchParams({
+  isActive: "true",
+  sorting: "true",
+});
+
+const response = await fetch(
+  `https://0wk40w2jbj.execute-api.ap-south-1.amazonaws.com/live/metadata/get?${params}`,
+  {
+    method: "GET",
+    headers: {
+      "Authorization": "Bearer <AWS_Cognito_ID_Token>",
+      "x-api-key": "<static_shared_key>",
+    },
+  }
+);
+const data = await response.json();
+```
+
+</CodeGroup>
+
+**Response**
+
+```json
+{
+  "message": "Metadata fetched successfully",
+  "responseCode": 200,
+  "response": "Success",
+  "result": [
+    {
+      "metadataId": "meta_01ABCXYZ",
+      "key": "fiscalYearStart",
+      "value": "April",
+      "category": "finance",
+      "isActive": true,
+      "isDeleted": false,
+      "createdAt": "2024-01-15T09:30:00.000Z"
+    },
+    {
+      "metadataId": "meta_02DEFUVW",
+      "key": "organizationName",
+      "value": "Acme Corporation",
+      "category": "companyInfo",
+      "isActive": true,
+      "isDeleted": false,
+      "createdAt": "2024-01-15T09:31:00.000Z"
+    },
+    {
+      "metadataId": "meta_03GHIRST",
+      "key": "maxAnnualLeave",
+      "value": "21",
+      "category": "hr",
+      "isActive": true,
+      "isDeleted": false,
+      "createdAt": "2024-01-15T09:32:00.000Z"
+    }
+  ]
+}
+```
+
+<ResponseField name="result[].metadataId" type="string">
+  Unique identifier for this metadata entry. Store this value to update or reference the entry later.
+</ResponseField>
+<ResponseField name="result[].key" type="string">
+  The configuration key name — e.g., `"fiscalYearStart"` or `"organizationName"`.
+</ResponseField>
+<ResponseField name="result[].value" type="string">
+  The value associated with the key.
+</ResponseField>
+<ResponseField name="result[].category" type="string">
+  An optional grouping label for organizing related entries — e.g., `"finance"`, `"hr"`, or `"companyInfo"`.
+</ResponseField>
+<ResponseField name="result[].isActive" type="boolean">
+  Whether this entry is currently active and should be applied by the platform.
+</ResponseField>
+<ResponseField name="result[].isDeleted" type="boolean">
+  Whether this entry has been soft-deleted.
+</ResponseField>
+<ResponseField name="result[].createdAt" type="string">
+  ISO 8601 timestamp of when the entry was created.
+</ResponseField>
+
+---
+
+## POST /metadata/create
+
+Create a new metadata key-value entry for your tenant. Use `category` to group the entry with related settings for easier retrieval.
+
+**Endpoint**
+
+```
+POST https://0wk40w2jbj.execute-api.ap-south-1.amazonaws.com/live/metadata/create
+```
+
+**Request Body**
+
+<ParamField body="key" type="string" required>
+  The configuration key name. Should be unique within your tenant to avoid ambiguous lookups (e.g., `"fiscalYearStart"`, `"defaultTimezone"`).
+</ParamField>
+<ParamField body="value" type="string" required>
+  The value to store for this key.
+</ParamField>
+<ParamField body="isActive" type="boolean">
+  Whether the entry is immediately active. Defaults to `true` if omitted.
+</ParamField>
+<ParamField body="category" type="string">
+  A grouping label for organizing related entries. Recommended values: `"companyInfo"`, `"finance"`, `"hr"` — but any string is accepted.
+</ParamField>
+
+<CodeGroup>
+
+```bash cURL
+curl --request POST \
+  --url "https://0wk40w2jbj.execute-api.ap-south-1.amazonaws.com/live/metadata/create" \
+  --header "Authorization: Bearer <AWS_Cognito_ID_Token>" \
+  --header "x-api-key: <static_shared_key>" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "key": "fiscalYearStart",
+    "value": "April",
+    "isActive": true,
+    "category": "finance"
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch(
+  "https://0wk40w2jbj.execute-api.ap-south-1.amazonaws.com/live/metadata/create",
+  {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer <AWS_Cognito_ID_Token>",
+      "x-api-key": "<static_shared_key>",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      key: "fiscalYearStart",
+      value: "April",
+      isActive: true,
+      category: "finance",
+    }),
+  }
+);
+const data = await response.json();
+```
+
+</CodeGroup>
+
+**Response**
+
+```json
+{
+  "message": "Metadata created successfully",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "metadataId": "meta_01ABCXYZ",
+    "key": "fiscalYearStart",
+    "value": "April",
+    "category": "finance",
+    "isActive": true,
+    "createdAt": "2024-01-15T09:30:00.000Z"
+  }
+}
+```
+
+<Tip>
+  Organize your metadata entries using the `category` field to group related settings together. For example, use `"companyInfo"` for organizational details, `"finance"` for fiscal settings like year-start month or currency, and `"hr"` for workforce policies like maximum leave days. This makes it much easier to fetch a coherent subset of settings in a single filtered `GET /metadata/get` call.
+</Tip>
+
+---
+
+## PUT /metadata/update
+
+Update an existing metadata entry's key, value, or active status. You must supply the `metadataId` of the entry you want to modify.
+
+**Endpoint**
+
+```
+PUT https://0wk40w2jbj.execute-api.ap-south-1.amazonaws.com/live/metadata/update
+```
+
+**Request Body**
+
+<ParamField body="metadataId" type="string" required>
+  The unique identifier of the metadata entry to update. Returned by `POST /metadata/create` and listed in `GET /metadata/get` responses.
+</ParamField>
+<ParamField body="key" type="string">
+  Updated key name. Use with caution — if other services reference this key by name, renaming it may break those lookups.
+</ParamField>
+<ParamField body="value" type="string">
+  Updated value for this entry.
+</ParamField>
+<ParamField body="isActive" type="boolean">
+  Set to `false` to deactivate the entry without deleting it, or `true` to re-activate it.
+</ParamField>
+
+<CodeGroup>
+
+```bash cURL — Update Value
+curl --request PUT \
+  --url "https://0wk40w2jbj.execute-api.ap-south-1.amazonaws.com/live/metadata/update" \
+  --header "Authorization: Bearer <AWS_Cognito_ID_Token>" \
+  --header "x-api-key: <static_shared_key>" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "metadataId": "meta_01ABCXYZ",
+    "value": "January"
+  }'
+```
+
+```bash cURL — Deactivate Entry
+curl --request PUT \
+  --url "https://0wk40w2jbj.execute-api.ap-south-1.amazonaws.com/live/metadata/update" \
+  --header "Authorization: Bearer <AWS_Cognito_ID_Token>" \
+  --header "x-api-key: <static_shared_key>" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "metadataId": "meta_01ABCXYZ",
+    "isActive": false
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch(
+  "https://0wk40w2jbj.execute-api.ap-south-1.amazonaws.com/live/metadata/update",
+  {
+    method: "PUT",
+    headers: {
+      "Authorization": "Bearer <AWS_Cognito_ID_Token>",
+      "x-api-key": "<static_shared_key>",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      metadataId: "meta_01ABCXYZ",
+      value: "January",
+    }),
+  }
+);
+const data = await response.json();
+```
+
+</CodeGroup>
+
+**Response**
+
+```json
+{
+  "message": "Metadata updated successfully",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "metadataId": "meta_01ABCXYZ",
+    "key": "fiscalYearStart",
+    "value": "January",
+    "category": "finance",
+    "isActive": true
+  }
+}
+```
+
+---
+
+## Endpoint Summary
+
+<CardGroup cols={3}>
+  <Card title="GET /metadata/get" icon="list">
+    List all metadata entries with optional filters.
+  </Card>
+  <Card title="POST /metadata/create" icon="plus">
+    Create a new key-value configuration entry.
+  </Card>
+  <Card title="PUT /metadata/update" icon="pen-to-square">
+    Update the key, value, or status of an existing entry.
+  </Card>
+</CardGroup>

@@ -1,0 +1,68 @@
+---
+title: "StaffGlimpse: HR & Payroll API Platform"
+sidebarTitle: "Home"
+description: "StaffGlimpse is a multi-tenant HR and Payroll SaaS platform. Manage employees, attendance, leave, documents, and notifications via REST APIs."
+---
+
+StaffGlimpse gives your organization a complete HR and payroll foundation through a set of purpose-built REST APIs. Whether you're building a custom HR portal, integrating with an existing system, or automating workforce workflows, StaffGlimpse handles company management, user profiles, attendance tracking, leave policies, document storage, and in-app notifications — all from a single, consistent API surface.
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/docs/quickstart">
+    Make your first API call in minutes — register a company, create a user, and punch in.
+  </Card>
+  <Card title="Authentication" icon="lock" href="/docs/authentication">
+    Learn how to obtain a Cognito token and pass the required headers on every request.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/company">
+    Explore the full endpoint catalog for Company, Users, Attendance, Leave, and more.
+  </Card>
+  <Card title="Guides" icon="book-open" href="/docs/guides/company-setup">
+    Step-by-step walkthroughs for common HR workflows and platform integrations.
+  </Card>
+</CardGroup>
+
+## What You Can Build
+
+StaffGlimpse exposes REST APIs across ten domain services, giving you the building blocks for a complete HR platform:
+
+<CardGroup cols={3}>
+  <Card title="Company & Org" icon="building" href="/api-reference/company">
+    Register your company, manage departments and roles.
+  </Card>
+  <Card title="User Management" icon="users" href="/api-reference/users">
+    Create, update, lock, unlock, and deactivate employee accounts.
+  </Card>
+  <Card title="Attendance" icon="clock" href="/api-reference/attendance">
+    Track punch-in/out with geolocation, approve weekly records, and run monthly reports.
+  </Card>
+  <Card title="Leave Management" icon="calendar" href="/api-reference/leave-requests">
+    Configure leave policies, submit requests, and manage approvals.
+  </Card>
+  <Card title="Documents" icon="file" href="/api-reference/documents">
+    Upload, categorize, and securely retrieve employee documents from cloud storage.
+  </Card>
+  <Card title="Notifications" icon="bell" href="/api-reference/messages">
+    Send and receive in-app alerts, inbox messages, and notification counts.
+  </Card>
+</CardGroup>
+
+## Get Started in 4 Steps
+
+<Steps>
+  <Step title="Authenticate">
+    Sign in via AWS Cognito to obtain an ID token. Every API request requires a `Bearer` token and the shared `x-api-key` header. [Learn how →](/docs/authentication)
+  </Step>
+  <Step title="Register Your Company">
+    Call `POST /company/register` with your company name and admin credentials to provision your tenant. [Company Setup Guide →](/docs/guides/company-setup)
+  </Step>
+  <Step title="Create Departments & Users">
+    Set up your org structure with departments and roles, then create employee profiles. [User Management Guide →](/docs/guides/user-management)
+  </Step>
+  <Step title="Enable Workforce Features">
+    Activate attendance tracking and leave policies so employees can start logging time and requesting leave. [Attendance Guide →](/docs/guides/attendance)
+  </Step>
+</Steps>
+
+<Note>
+  All StaffGlimpse APIs are served from AWS API Gateway in the `ap-south-1` (Mumbai) region. See [Base URLs & Endpoints](/docs/endpoints/overview) for a full list of service-specific base URLs.
+</Note>

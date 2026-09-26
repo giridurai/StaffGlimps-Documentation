@@ -1,0 +1,72 @@
+---
+title: "StaffGlimpse: HR & Payroll SaaS API Platform"
+sidebarTitle: "Introduction"
+description: "Learn what StaffGlimpse is, which services it provides, and how its multi-tenant REST API platform helps you manage your workforce."
+---
+
+StaffGlimpse is a multi-tenant HR and Payroll SaaS platform that exposes a suite of REST APIs covering every dimension of workforce management — from Company setup and Departments to Roles, Users, Attendance, Leave, Documents, Notifications, and Metadata. Each service domain runs on its own API gateway, giving you fine-grained control and the flexibility to integrate only the capabilities your organisation needs.
+
+## What StaffGlimpse Offers
+
+<CardGroup cols={2}>
+  <Card title="Company & Org" icon="building">
+    Register and configure your company tenant, manage departments, and define the organisational hierarchy that underpins every other service.
+  </Card>
+  <Card title="Employee Management" icon="users">
+    Create and manage user profiles, assign roles (ADMIN or USER), and maintain up-to-date employee records including contact details and addresses.
+  </Card>
+  <Card title="Attendance Tracking" icon="clock">
+    Record geo-tagged punch-in and punch-out events, review daily and monthly attendance summaries, and surface anomalies for payroll processing.
+  </Card>
+  <Card title="Leave Management" icon="calendar">
+    Define leave policies, track entitlements, and handle the full request-and-approval workflow — all through a single, consistent API surface.
+  </Card>
+  <Card title="Document Storage" icon="file">
+    Upload, retrieve, and manage employee documents. Files are served via a CloudFront-backed distribution for fast, secure access worldwide.
+  </Card>
+  <Card title="Notifications & Messaging" icon="bell">
+    Send and receive in-app messages and system notifications to keep employees and administrators informed in real time.
+  </Card>
+</CardGroup>
+
+## How It Works
+
+StaffGlimpse is organised as a collection of independent API gateways, one per service domain. Every request — regardless of which service you are calling — must include two HTTP headers: an `Authorization: Bearer` header containing a valid AWS Cognito ID token, and an `x-api-key` header containing your static shared API key. All responses share a common envelope shape so that your client code can handle success and error cases uniformly.
+
+```json
+{
+  "message": "Human-readable summary of the operation",
+  "responseCode": 200,
+  "response": "Success",
+  "result": { }
+}
+```
+
+The `responseCode` field mirrors the HTTP status code. A value of `200` indicates success; non-200 values describe the specific error condition. The `result` field contains the domain-specific payload for that endpoint.
+
+## Key Concepts
+
+| Concept | Description |
+|---|---|
+| **Tenant** | A single company account within StaffGlimpse. All data — departments, users, attendance records — is scoped to the tenant that owns it. |
+| **User Roles** | Every user is assigned either `ADMIN` or `USER`. Admins can manage company settings, departments, and other users; regular users access their own data and submit requests. |
+| **Departments** | Logical groupings of employees within a company. Departments are referenced when creating users and reporting on headcount. |
+| **Leave Policies** | Company-defined rules governing leave types, entitlements, and accrual. Policies must exist before employees can submit leave requests. |
+| **Attendance Punch-in/out** | Employees sign in and sign out via the Attendance API, optionally providing GPS coordinates and accuracy metadata for location-aware enforcement. |
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="bolt" href="/docs/quickstart">
+    Make your first five API calls and walk through the core HR workflow in minutes.
+  </Card>
+  <Card title="Authentication" icon="lock" href="/docs/authentication">
+    Understand how to obtain a Cognito ID token and pass both required headers on every request.
+  </Card>
+  <Card title="Company Setup Guide" icon="building" href="/docs/guides/company-setup">
+    Follow a step-by-step guide to registering your company and configuring departments.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/company">
+    Explore the full reference for every endpoint, parameter, and response field.
+  </Card>
+</CardGroup>

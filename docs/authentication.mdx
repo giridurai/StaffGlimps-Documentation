@@ -1,0 +1,62 @@
+---
+title: "Authenticate with the StaffGlimpse API"
+sidebarTitle: "Authentication"
+description: "Every StaffGlimpse API request requires a Bearer token from AWS Cognito and a static x-api-key header. Learn how to obtain and pass both."
+---
+
+StaffGlimpse authenticates every API request using two required HTTP headers: an AWS Cognito ID token passed as a Bearer token in the `Authorization` header, and a static `x-api-key` shared key. Both headers must be present on every call — omitting either one will result in a `401` or `403` error response.
+
+## Required Headers
+
+| Header | Value | Required |
+|---|---|---|
+| `Authorization` | `Bearer <Cognito_ID_Token>` | ✅ Yes |
+| `x-api-key` | Static shared API key | ✅ Yes |
+
+## Obtaining Your Bearer Token
+
+StaffGlimpse uses AWS Cognito as its identity provider. After a user signs in through your application, Cognito returns a set of tokens — use the **ID token** as the Bearer value. The following example uses the AWS Amplify v6 library to retrieve the token from the current authenticated session:
+
+```typescript
+import { fetchAuthSession } from 'aws-amplify/auth';
+
+const session = await fetchAuthSession();
+const token = session.tokens?.idToken?.toString();
+// Use token in Authorization: Bearer <token>
+```
+
+<Note>
+  If you are using a non-JavaScript client, use any AWS Cognito-compatible SDK or the Cognito REST API to perform the sign-in flow and retrieve the ID token. The token format and expiry behaviour are identical regardless of which SDK you use.
+</Note>
+
+## Making an Authenticated Request
+
+Pass both headers on every request. The example below calls the Company endpoint, but the same pattern applies to all StaffGlimpse services:
+
+```bash
+curl https://r00buwtnh1.execute-api.ap-south-1.amazonaws.com/live/company \
+  -H "Authorization: Bearer <YOUR_COGNITO_ID_TOKEN>" \
+  -H "x-api-key: <YOUR_API_KEY>"
+```
+
+## Authentication Errors
+
+| HTTP Status | Meaning | Resolution |
+|---|---|---|
+| `401 Unauthorized` | The `Authorization` header is missing or the token has expired. | Re-authenticate with Cognito to obtain a fresh ID token and retry the request. |
+| `403 Forbidden` | The `x-api-key` value is invalid or missing. | Verify that you are sending the correct API key value and that the header name is exactly `x-api-key`. |
+
+## Token Lifecycle
+
+Cognito ID tokens expire after a set period — typically **1 hour**. Your client should handle token expiry in one of two ways:
+
+- **Proactive refresh** — use Cognito's refresh token flow to silently obtain a new ID token before the current one expires.
+- **Reactive refresh** — catch any `401 Unauthorized` response, trigger a re-authentication flow, then replay the original request with the new token.
+
+<Tip>
+  AWS Amplify's `fetchAuthSession` automatically refreshes the session when the ID token is close to expiry. If you call it before each request, you will rarely encounter a `401` due to token expiry in a well-behaved Amplify application.
+</Tip>
+
+<Warning>
+  The `x-api-key` is a shared credential — treat it like a password. Never embed it in client-side JavaScript bundles, mobile app binaries, or public repositories. Store it in an environment variable or a secrets manager and inject it at runtime on a trusted server.
+</Warning>

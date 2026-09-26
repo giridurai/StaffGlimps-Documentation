@@ -1,0 +1,301 @@
+---
+title: "Manage Employees with the Users API"
+sidebarTitle: "User Management"
+description: "Create, update, search, lock, unlock, and delete employee profiles in StaffGlimpse using the User/Profile API endpoints."
+---
+
+StaffGlimpse's User API lets you manage the complete lifecycle of employee accounts — from onboarding to offboarding — including profile updates and account controls. Every operation in this guide targets the User/Profile service at `https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live` and requires both the `Authorization` and `x-api-key` headers on every request.
+
+<Note>
+  Complete your [company setup](/docs/guides/company-setup) — including departments and roles — before creating users. You will need valid `departmentId` and role values at the point of user creation.
+</Note>
+
+---
+
+## Create a User
+
+Use `POST /profile/create` to onboard a new employee. The request body includes the employee's personal details, contact information, and initial address.
+
+<Tabs>
+  <Tab title="cURL">
+    ```bash
+    curl -X POST https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/create \
+      -H "Content-Type: application/json" \
+      -H "x-api-key: <YOUR_API_KEY>" \
+      -H "Authorization: Bearer <YOUR_TOKEN>" \
+      -d '{
+        "emailId": "jane.smith@acme.com",
+        "firstName": "Jane",
+        "lastName": "Smith",
+        "password": "UserPass123!",
+        "countryCode": "+1",
+        "phoneNumber": "5559876543",
+        "userRole": "USER",
+        "address": {
+          "physicalAddress": {
+            "addLine1": "456 Oak Ave",
+            "addLine2": "",
+            "state": "NY",
+            "city": "New York",
+            "pinCode": "10001"
+          },
+          "mailingAddress": {
+            "addLine1": "456 Oak Ave",
+            "addLine2": "",
+            "state": "NY",
+            "city": "New York",
+            "pinCode": "10001"
+          },
+          "isPhysicalAndMailingAddressSame": true
+        }
+      }'
+    ```
+  </Tab>
+  <Tab title="Response">
+    ```json
+    {
+      "message": "User profile created successfully",
+      "responseCode": 200,
+      "response": "Success",
+      "result": {
+        "customerId": 10024,
+        "emailId": "jane.smith@acme.com",
+        "firstName": "Jane",
+        "lastName": "Smith",
+        "userRole": "USER",
+        "isActive": true
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Request fields
+
+<ParamField body="emailId" type="string" required>
+  The employee's work email address. Used as the login identifier — must be unique across your tenant.
+</ParamField>
+
+<ParamField body="firstName" type="string" required>
+  The employee's given name.
+</ParamField>
+
+<ParamField body="lastName" type="string" required>
+  The employee's family name.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  The initial account password. The employee can change this on first sign-in.
+</ParamField>
+
+<ParamField body="countryCode" type="string" required>
+  The international dialling code for the employee's phone number (for example, `"+1"` or `"+44"`).
+</ParamField>
+
+<ParamField body="phoneNumber" type="string" required>
+  The employee's phone number, without the country code.
+</ParamField>
+
+<ParamField body="userRole" type="string" required>
+  Controls the employee's global access level. Accepted values:
+
+  - `ADMIN` — full platform access, including company settings, billing, and user management.
+  - `USER` — standard employee access scoped to the modules permitted by their assigned role.
+</ParamField>
+
+<ParamField body="address" type="object">
+  The employee's address information.
+
+  <Expandable title="address fields">
+    <ParamField body="address.physicalAddress" type="object">
+      The employee's current physical address, used for company records and correspondence.
+    </ParamField>
+    <ParamField body="address.mailingAddress" type="object">
+      The address to which payslips and official documents are mailed. Can differ from the physical address.
+    </ParamField>
+    <ParamField body="address.isPhysicalAndMailingAddressSame" type="boolean">
+      When `true`, the platform treats both addresses as identical and mirrors changes automatically.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+---
+
+## List Users
+
+Retrieve a filtered list of employee profiles with `GET /profile/get`. All query parameters are optional — omitting them returns all users in your tenant.
+
+```bash
+# Return up to 50 active employees
+curl -X GET "https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/get?isActive=true&limit=50" \
+  -H "x-api-key: <YOUR_API_KEY>" \
+  -H "Authorization: Bearer <YOUR_TOKEN>"
+```
+
+<ParamField query="emailId" type="string">
+  Filter results to the employee whose email address matches this value exactly.
+</ParamField>
+
+<ParamField query="firstName" type="string">
+  Filter results to employees whose first name matches this value.
+</ParamField>
+
+<ParamField query="isActive" type="boolean">
+  Return only active employees (`true`) or only inactive/locked employees (`false`). Omit to return both.
+</ParamField>
+
+<ParamField query="sort" type="boolean">
+  When `true`, the response list is sorted alphabetically by last name.
+</ParamField>
+
+<ParamField query="limit" type="integer">
+  The maximum number of records to return in a single response. Use this to paginate through large workforces.
+</ParamField>
+
+---
+
+## Get Your Own Profile
+
+To retrieve the profile of the currently authenticated user without specifying any identifier, call `GET /profile`. This is useful for confirming your session context or pre-filling profile forms in your integration.
+
+```bash
+curl -X GET https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile \
+  -H "x-api-key: <YOUR_API_KEY>" \
+  -H "Authorization: Bearer <YOUR_TOKEN>"
+```
+
+The response `result` object contains the full profile of the user whose token was provided in the `Authorization` header.
+
+---
+
+## Update a User
+
+Use `PUT /profile/update` to modify an existing employee profile. Include the `customerId` (the numeric ID returned when the profile was created) to identify which record to update.
+
+```bash
+curl -X PUT https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/update \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: <YOUR_API_KEY>" \
+  -H "Authorization: Bearer <YOUR_TOKEN>" \
+  -d '{
+    "customerId": 10024,
+    "firstName": "Jane",
+    "lastName": "Smith-Johnson",
+    "countryCode": "+1",
+    "phoneNumber": "5551234567",
+    "address": {
+      "physicalAddress": {
+        "addLine1": "789 Maple Street",
+        "addLine2": "Apt 3B",
+        "state": "NY",
+        "city": "New York",
+        "pinCode": "10002"
+      },
+      "mailingAddress": {
+        "addLine1": "789 Maple Street",
+        "addLine2": "Apt 3B",
+        "state": "NY",
+        "city": "New York",
+        "pinCode": "10002"
+      },
+      "isPhysicalAndMailingAddressSame": true
+    }
+  }'
+```
+
+<ParamField body="customerId" type="integer" required>
+  The unique numeric identifier of the employee profile to update. Returned in the `result` object when the profile was created.
+</ParamField>
+
+<Info>
+  Only the fields you include in the request body are updated. Fields you omit retain their existing values.
+</Info>
+
+---
+
+## Lock & Unlock Accounts
+
+Account locking is the right response to security incidents, extended unplanned absences, or compliance holds. A locked account retains all its data but cannot authenticate. Use locking as a reversible alternative to deletion during investigations or waiting periods.
+
+<Warning>
+  Locking an account immediately prevents the employee from signing in and from recording attendance punches. Any in-progress sessions are invalidated. Always unlock the account as soon as access should be restored to avoid disrupting payroll and attendance records.
+</Warning>
+
+### Lock an account
+
+```bash
+curl -X POST https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/lock \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: <YOUR_API_KEY>" \
+  -H "Authorization: Bearer <YOUR_TOKEN>" \
+  -d '{
+    "customerId": 10024,
+    "lockReason": "Security review — unusual login activity detected"
+  }'
+```
+
+<ParamField body="customerId" type="integer" required>
+  The numeric ID of the employee account to lock.
+</ParamField>
+
+<ParamField body="lockReason" type="string" required>
+  A human-readable explanation for why the account is being locked. Recorded in the audit log for compliance purposes.
+</ParamField>
+
+### Unlock an account
+
+```bash
+curl -X POST https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/unlock \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: <YOUR_API_KEY>" \
+  -H "Authorization: Bearer <YOUR_TOKEN>" \
+  -d '{
+    "customerId": 10024
+  }'
+```
+
+<ParamField body="customerId" type="integer" required>
+  The numeric ID of the employee account to unlock. After a successful unlock, the employee can sign in immediately.
+</ParamField>
+
+---
+
+## Delete a User
+
+When an employee leaves your organization, use `POST /profile/delete` to mark their record as deleted. This is a **soft delete** — the record is flagged as deleted and excluded from active queries, but the underlying data is preserved for audit, payroll history, and compliance purposes.
+
+```bash
+curl -X POST https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/delete \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: <YOUR_API_KEY>" \
+  -H "Authorization: Bearer <YOUR_TOKEN>" \
+  -d '{
+    "customerId": 10024,
+    "deleteReason": "Employee resigned — last working day 2025-07-15"
+  }'
+```
+
+<ParamField body="customerId" type="integer" required>
+  The numeric ID of the employee profile to delete.
+</ParamField>
+
+<ParamField body="deleteReason" type="string" required>
+  The reason for deletion. Captured in the audit trail and surfaced in HR reports for offboarding workflows.
+</ParamField>
+
+<Note>
+  Soft-deleted profiles do not appear in `GET /profile/get` results by default. Contact StaffGlimpse support if you need to retrieve or restore a deleted record.
+</Note>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Attendance" icon="clock" href="/docs/guides/attendance">
+    Configure attendance policies and learn how employees record punch-in and punch-out events via the API.
+  </Card>
+  <Card title="Leave Requests" icon="calendar-minus" href="/api-reference/leave-requests">
+    Submit, approve, and manage employee leave requests against the leave policies you have configured.
+  </Card>
+</CardGroup>
