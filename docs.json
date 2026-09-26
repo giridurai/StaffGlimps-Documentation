@@ -1,5 +1,5 @@
 {
-  "name": "StaffGlimpse API",
+  "name": "StaffGlimpse",
   "logo": {
     "dark": "/logo/dark.png",
     "light": "/logo/light.png"
@@ -7,19 +7,105 @@
   "favicon": "/favicon.png",
   "colors": {
     "primary": "#0F52BA",
-    "light": "#2563EB",
-    "dark": "#3B82F6"
+    "light": "#3B82F6",
+    "dark": "#2563EB"
   },
   "topbarCtaButton": {
     "name": "Dashboard",
     "url": "https://staffglimpse.com"
   },
-  "navigation": [
-    {
-      "group": "Getting Started",
-      "pages": [
-        "introduction"
-      ]
-    }
-  ]
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "icon": "rocket",
+            "pages": [
+              "index",
+              "quickstart",
+              "get-started/account-setup",
+              "get-started/organization-settings",
+              "get-started/departments"
+            ]
+          },
+          {
+            "group": "Employee Management",
+            "icon": "users",
+            "pages": [
+              "employees/overview",
+              "employees/onboarding",
+              "employees/profiles",
+              "employees/offboarding"
+            ]
+          },
+          {
+            "group": "Attendance & Leave",
+            "icon": "calendar-check",
+            "pages": [
+              "attendance/overview",
+              "attendance/tracking",
+              "attendance/leave-management",
+              "attendance/holidays"
+            ]
+          },
+          {
+            "group": "Payroll",
+            "icon": "money-bill",
+            "pages": [
+              "payroll/overview",
+              "payroll/salary-structure",
+              "payroll/process-payroll",
+              "payroll/payslips",
+              "payroll/statutory-compliance"
+            ]
+          },
+          {
+            "group": "Performance",
+            "icon": "chart-line",
+            "pages": [
+              "performance/overview",
+              "performance/goals",
+              "performance/reviews"
+            ]
+          },
+          {
+            "group": "Administration",
+            "icon": "gear",
+            "pages": [
+              "admin/roles-permissions",
+              "admin/billing",
+              "admin/security"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "icon": "book-open",
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/authentication"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "icon": "code",
+            "openapi": "openapi.json"
+          }
+        ]
+      }
+    ]
+  },
+  "theme": "almond",
+  "styling": {
+    "eyebrows": "breadcrumbs"
+  },
+  "api": {
+    "openapi": "openapi.json"
+  }
 }

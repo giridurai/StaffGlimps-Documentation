@@ -1,0 +1,108 @@
+---
+title: "Track Employee Attendance with Shifts and Check-Ins"
+sidebarTitle: "Tracking"
+description: "Set up shifts, assign employees, enable check-in methods, and manage attendance regularization in StaffGlimpse."
+---
+
+Use StaffGlimpse attendance tracking to record when employees start and end their workday, apply shift rules consistently across teams, and correct discrepancies through regularization requests. This guide covers everything from creating a shift to reviewing monthly attendance summaries.
+
+## Prerequisites
+
+- You must have an **Admin** or **HR Manager** role to create shifts and change check-in settings.
+- Employees must be onboarded in StaffGlimpse before they can be assigned to a shift.
+
+## Define a shift
+
+<Steps>
+  <Step title="Open Shifts">
+    Go to **Attendance > Shifts** and click **New Shift**.
+  </Step>
+  <Step title="Set timings">
+    Enter the shift name, start time, end time, and break duration. Add a grace period in minutes if late arrivals within that window should still count as Present.
+  </Step>
+  <Step title="Configure overtime">
+    Choose whether overtime is calculated automatically after the shift end time, and set the rounding rule (for example, round to the nearest 30 minutes).
+  </Step>
+  <Step title="Save">
+    Click **Save**. The shift is now available to assign to employees.
+  </Step>
+</Steps>
+
+## Assign employees to a shift
+
+<Steps>
+  <Step title="Open employee assignment">
+    In **Attendance > Shifts**, select the shift you created and click **Assign Employees**.
+  </Step>
+  <Step title="Select employees">
+    Use the employee directory to add individuals or entire departments. You can set effective dates if the assignment starts later.
+  </Step>
+  <Step title="Confirm">
+    Click **Assign**. Affected employees will see the updated shift in their dashboard and mobile app.
+  </Step>
+</Steps>
+
+## Enable check-in methods
+
+<Steps>
+  <Step title="Open settings">
+    Navigate to **Attendance > Settings > Check-in Methods**.
+  </Step>
+  <Step title="Choose methods">
+    Enable one or more options:
+
+    - **Web check-in**: Employees mark attendance from the StaffGlimpse dashboard.
+    - **Mobile check-in**: Employees use the StaffGlimpse mobile app.
+    - **Biometric integration**: Sync data from supported biometric devices.
+  </Step>
+  <Step title="Apply restrictions">
+    For mobile check-in, toggle **Geo-fencing** if you want to restrict check-in to within a defined radius of the office or site location. Enter the address and allowed distance in meters.
+  </Step>
+  <Step title="Save settings">
+    Click **Save**. Changes apply immediately to all employees under the selected attendance policy.
+  </Step>
+</Steps>
+
+<Tip>
+  Geo-fencing for mobile check-in is useful for field teams and remote sites. Employees outside the defined radius will see a location mismatch warning and can still check in, but the entry is flagged for HR review.
+</Tip>
+
+## View daily and monthly attendance
+
+<Steps>
+  <Step title="Open attendance records">
+    Go to **Attendance > Records**.
+  </Step>
+  <Step title="Filter the view">
+    Use the date picker to switch between daily and monthly views. Filter by department, location, or shift to narrow results.
+  </Step>
+  <Step title="Review statuses">
+    Each row shows the employee, shift, check-in and check-out times, total hours, and final status (Present, Late, Half-day, Absent, or On Leave).
+  </Step>
+  <Step title="Export if needed">
+    Click **Export** to download a CSV or PDF summary for payroll reconciliation or compliance audits.
+  </Step>
+</Steps>
+
+## Mark attendance regularizations
+
+<Steps>
+  <Step title="Open regularization">
+    Go to **Attendance > Regularization**.
+  </Step>
+  <Step title="Review requests">
+    Employees who missed a punch or had a device issue will raise a request with the date, expected in/out times, and a reason.
+  </Step>
+  <Step title="Approve or reject">
+    Select a request, verify against shift records or team calendars, and click **Approve** or **Reject**. Add a comment if rejecting so the employee understands the reason.
+  </Step>
+</Steps>
+
+## Result
+
+Your employees are now assigned to shifts with clear check-in rules. Daily and monthly attendance records update automatically based on punches, and any discrepancies flow through a structured regularization workflow.
+
+## Next steps
+
+- [Configure leave policies and balances](/attendance/leave-management)
+- [Set up holiday calendars for each location](/attendance/holidays)

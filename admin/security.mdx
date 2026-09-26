@@ -1,0 +1,73 @@
+---
+title: "StaffGlimpse Security and Data Protection Overview"
+sidebarTitle: "Security"
+description: "Learn how StaffGlimpse protects your HR and payroll data with SSO, 2FA, IP allowlists, audit logs, data residency, and employee privacy controls."
+---
+
+StaffGlimpse is built to keep your employee and payroll data safe. The platform offers enterprise-grade security controls that let you enforce strong authentication, limit access by network location, maintain a complete audit trail, and choose where your data is stored.
+
+## Single sign-on (SSO) and SAML
+
+You can connect StaffGlimpse to your corporate identity provider so employees log in with their existing work credentials.
+
+- **SAML 2.0**: Connect providers such as Okta, Azure AD, Google Workspace, or any SAML-compatible IdP.
+- **Just-in-time provisioning**: New users are auto-created on first login when SSO is enabled, reducing manual onboarding.
+- **Force SSO**: Admins can disable password-based login entirely and require SSO for all users.
+
+To configure SSO, go to **Admin** > **Security** > **SSO / SAML** and upload your IdP metadata XML file.
+
+## Two-factor authentication (2FA)
+
+Add an extra layer of protection to every account.
+
+- **TOTP apps**: Users can enroll any authenticator app (Google Authenticator, Microsoft Authenticator, Authy) by scanning a QR code.
+- **Enforcement policies**: Admins can require 2FA for all users, or only for Admin and Payroll Admin roles.
+- **Recovery codes**: Each user receives backup codes during enrollment to regain access if they lose their device.
+
+## IP allowlists
+
+Restrict StaffGlimpse access to trusted office networks or VPN ranges.
+
+- Add IPv4 or IPv6 ranges in **Admin** > **Security** > **IP Allowlist**.
+- Users outside the allowed ranges are blocked at login and receive an email alert.
+- You can maintain multiple allowlist entries for branch offices or remote VPN gateways.
+
+## Data residency
+
+Choose the geographic region where your tenant data is stored and processed.
+
+- **India (Mumbai)**: Default for Indian customers. Supports statutory compliance requirements for local data storage.
+- **Other regions**: Contact your account manager if you need data residency in a different region.
+
+<Note>
+  StaffGlimpse uses single-tenant data isolation at the database layer. Each organization gets a logically separated data store so employee records, payroll runs, and audit logs are never mixed between customers.
+</Note>
+
+## Audit logs
+
+Track every significant action in your account for compliance and investigation.
+
+- **Logged events**: Logins, password changes, role assignments, payroll runs, salary edits, employee exports, and setting changes.
+- **Retention**: Audit logs are retained for the duration of your subscription. Enterprise plans can export logs to SIEM tools.
+- **Access**: Go to **Admin** > **Security** > **Audit Logs** to search by user, action type, and date range.
+
+## Data export and employee privacy
+
+StaffGlimpse gives you control over data portability and employee rights.
+
+- **Bulk export**: Admins can export employee data, payroll records, and attendance reports in CSV or Excel format from the respective module pages.
+- **Employee data requests**: When an employee requests access to or deletion of their personal data, HR can generate a full data package from **Employee Management** > **Employees** > **Actions** > **Export Employee Data**.
+- **Retention policies**: Offboarded employee data is retained for the statutory period required by local labor laws, then automatically purged according to your configured policy.
+
+## Security checklist for admins
+
+- [ ] Enforce 2FA for all Admin and Payroll Admin users.
+- [ ] Configure IP allowlists if your team works from fixed office locations.
+- [ ] Enable SSO to reduce password-related risks.
+- [ ] Review audit logs monthly for unusual activity.
+- [ ] Verify your data residency region matches your compliance requirements.
+
+## Next steps
+
+- [Configure roles and permissions](/admin/roles-permissions)
+- [Manage billing and plans](/admin/billing)

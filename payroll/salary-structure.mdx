@@ -1,0 +1,92 @@
+---
+title: "Create and manage salary structures in StaffGlimpse"
+description: "Learn how to build salary templates with India-standard components, assign them to employees or grades, and revise pay structures in StaffGlimpse."
+sidebarTitle: "Salary Structure"
+---
+
+A salary structure in StaffGlimpse is a reusable template that defines how an employee's cost-to-company is split into earnings and employer contributions. You can create one structure and assign it to many employees or grades, then revise it when policies change. This keeps your payroll consistent and makes monthly calculations predictable.
+
+## Prerequisites
+
+- Admin or Payroll Manager role in StaffGlimpse.
+- Organization settings (PF/ESI registration numbers, PT state) already configured.
+
+## Typical India salary components
+
+| Component | Type | Common rule |
+| --- | --- | --- |
+| Basic | Earning | Usually 40% to 50% of CTC |
+| HRA (House Rent Allowance) | Earning | 40% to 50% of Basic |
+| Conveyance Allowance | Earning | Fixed amount or percentage |
+| Special Allowance | Earning | Balance of CTC after other fixed components |
+| Employer PF | Employer contribution | 12% of Basic (capped by EPFO limits) |
+| Employer ESI | Employer contribution | 3.25% of gross if eligible |
+
+<Note>
+  StaffGlimpse computes statutory deductions automatically from the configured components, but the structure must include Basic so EPF and ESI calculations have a base.
+</Note>
+
+## Create a salary structure
+
+<Steps>
+  <Step title="Open Salary Structures">
+    Go to **Payroll > Salary Structures** and click **New Structure**.
+  </Step>
+  <Step title="Name the structure">
+    Enter a name such as "Grade A - Metro" or "Junior Engineer" so you can identify it later.
+  </Step>
+  <Step title="Add earnings components">
+    Click **Add Component**, choose **Earning**, and select or create items such as Basic, HRA, Conveyance, and Special Allowance. For each, set the calculation type: **Fixed amount**, **Percentage of CTC**, or **Percentage of Basic**.
+  </Step>
+  <Step title="Add employer contributions">
+    Add components of type **Employer Contribution** for Employer PF and Employer ESI. StaffGlimpse will use these to compute the employer-side liability during payroll.
+  </Step>
+  <Step title="Set the annual CTC">
+    Enter the annual cost-to-company. StaffGlimpse will auto-calculate monthly values based on the rules you defined.
+  </Step>
+  <Step title="Save the structure">
+    Click **Save**. The structure is now available to assign to employees.
+  </Step>
+</Steps>
+
+## Assign a structure to employees
+
+<Steps>
+  <Step title="Choose assignment mode">
+    In the Salary Structures list, open the structure and click **Assign**. Choose whether to assign by **Employee** or by **Grade / Department**.
+  </Step>
+  <Step title="Select targets">
+    Pick the employees or grades you want to link. You can assign the same structure to multiple people at once.
+  </Step>
+  <Step title="Set effective date">
+    Choose the effective date, typically the first day of the upcoming month. Click **Confirm Assignment**.
+  </Step>
+</Steps>
+
+## Revise an existing structure
+
+When pay policies change, you can revise a structure without breaking historical payroll data.
+
+<Steps>
+  <Step title="Open the structure">
+    Go to **Payroll > Salary Structures**, find the template, and click **Revise**.
+  </Step>
+  <Step title="Edit components">
+    Adjust percentages, add new components, or remove obsolete ones. You cannot delete a component that has already been used in a closed payroll month.
+  </Step>
+  <Step title="Set revision date">
+    Pick the effective date for the revision. StaffGlimpse will apply the new rules from that month onward while keeping prior months unchanged.
+  </Step>
+  <Step title="Reassign if needed">
+    If the revision affects a large group, use **Bulk Reassign** to push the updated structure to the same set of employees or grades.
+  </Step>
+</Steps>
+
+## Result
+
+Employees now have an active salary structure. Their monthly payroll will use the configured components, and statutory deductions will compute automatically based on the rules you set.
+
+## Next steps
+
+- [Run the monthly payroll cycle](/payroll/process-payroll)
+- [Review statutory compliance reports](/payroll/statutory-compliance)

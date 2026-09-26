@@ -1,0 +1,54 @@
+---
+title: "Run monthly payroll in StaffGlimpse step by step"
+description: "Lock attendance, review variables, approve computed pay, and generate bank files for monthly payroll processing in StaffGlimpse."
+sidebarTitle: "Run Payroll"
+---
+
+Running payroll in StaffGlimpse is a structured monthly workflow that turns attendance, leave, and salary data into approved net pay and disbursement files. This guide walks you through each step so you can close the cycle accurately and on time.
+
+## Prerequisites
+
+- Payroll Manager or Admin role.
+- Salary structures assigned to all employees in the cycle.
+- Attendance and leave data imported or approved for the month.
+- Bank account details available for employees who will be paid by transfer.
+
+## Run the monthly payroll cycle
+
+<Steps>
+  <Step title="Lock attendance and leaves">
+    Go to **Payroll > Run Payroll** and select the month. Click **Lock Attendance & Leaves** to freeze the period. Once locked, no further attendance or leave changes can be made for that month without an admin override.
+  </Step>
+  <Step title="Import LOP and unpaid leave days">
+    StaffGlimpse pulls Loss of Pay (LOP) days from the locked attendance. Review the LOP summary to confirm that unpaid absences, half-day deductions, and late penalties are counted correctly.
+  </Step>
+  <Step title="Add payroll variables">
+    Click **Variables** to enter one-time adjustments for the month. Common entries include bonuses, arrears, reimbursements, loan recoveries, and ad-hoc deductions. You can upload these in bulk via CSV or enter them individually.
+  </Step>
+  <Step title="Run the payroll computation">
+    Click **Compute Payroll**. StaffGlimpse calculates gross earnings, statutory deductions (PF, ESI, PT, TDS), and net pay for every employee based on their assigned salary structure, LOP days, and variables.
+  </Step>
+  <Step title="Review the payroll sheet">
+    Open the computed sheet and verify component-level totals. Filter by department, grade, or location to spot outliers. If you find errors, unlock variables or attendance (if still within your policy window), correct the data, and recompute.
+  </Step>
+  <Step title="Approve the payroll">
+    Once the sheet is verified, click **Approve Payroll**. This freezes the computation and prepares payslips for publishing. After approval, the data cannot be changed without a reversal workflow.
+  </Step>
+  <Step title="Generate the bank file">
+    Click **Generate Bank File** to create a NEFT/RTGS or bank-specific upload file with employee account numbers and net pay amounts. Download the file and upload it to your corporate banking portal, or share it with your finance team for disbursement.
+  </Step>
+</Steps>
+
+<Warning>
+  Lock attendance before computing payroll. If attendance is unlocked when you run the cycle, computed values may change later and lead to incorrect payouts or compliance mismatches.
+</Warning>
+
+## Result
+
+The payroll cycle is approved and ready for disbursement. Payslips are queued for publishing, and the bank file is available for download. Statutory liability reports are also generated for the month.
+
+## Next steps
+
+- [Publish payslips to employees](/payroll/payslips)
+- [Review statutory compliance reports](/payroll/statutory-compliance)
+- [Manage salary structures](/payroll/salary-structure)

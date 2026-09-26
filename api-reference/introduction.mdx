@@ -1,0 +1,80 @@
+---
+title: "StaffGlimpse REST API: multi-service HR and payroll integration"
+sidebarTitle: "Introduction"
+description: "Integrate with StaffGlimpse via REST APIs for company, users, attendance, leave, documents, messages, and metadata across seven AWS service endpoints."
+---
+
+The StaffGlimpse REST API is split across service-specific AWS API Gateway endpoints in the `ap-south-1` (Mumbai) region. Every request is authenticated with an AWS Cognito bearer token and a static API key. This page covers base URLs, request format, and where to find the full endpoint reference.
+
+## Base URLs
+
+Each service domain has its own production base URL. Pick the base URL that matches the endpoint you're calling.
+
+| Service | Base URL |
+| --- | --- |
+| Company | `https://r00buwtnh1.execute-api.ap-south-1.amazonaws.com/live` |
+| User / Profile | `https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live` |
+| Metadata | `https://0wk40w2jbj.execute-api.ap-south-1.amazonaws.com/live` |
+| Messages | `https://7gt46stdyc.execute-api.ap-south-1.amazonaws.com/live` |
+| Attendance | `https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live` |
+| Documents | `https://6e52pmjmy4.execute-api.ap-south-1.amazonaws.com/live` |
+| Leave | `https://5bknc0zrv5.execute-api.ap-south-1.amazonaws.com/live` |
+| Document Cloud (S3/CloudFront) | `https://d2ikeisatr21la.cloudfront.net` |
+
+<Tip>
+  In local development, all services are proxied through `http://localhost:4200/api/<service-path>`, so you don't need to manage CORS or switch base URLs.
+</Tip>
+
+## Request and response format
+
+- All requests and responses use `application/json`.
+- Every response wraps the payload in a standard envelope:
+
+```json Response envelope
+{
+  "message": "Success",
+  "responseCode": 200,
+  "response": "Success",
+  "result": { }
+}
+```
+
+- Timestamps use ISO 8601 in UTC.
+- Enum values (leave types, statuses, roles) are uppercase strings.
+
+## API domains
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/api-reference/authentication">
+    Get a Cognito bearer token and set the required headers.
+  </Card>
+
+  <Card title="Company & Departments" icon="building" href="/api-reference/endpoints/company">
+    Company profile, departments, roles, and permissions.
+  </Card>
+
+  <Card title="Users" icon="users" href="/api-reference/endpoints/users">
+    Create, update, lock, and delete user profiles.
+  </Card>
+
+  <Card title="Attendance" icon="clock" href="/api-reference/endpoints/attendance">
+    Punch in and out, view weekly and monthly reports.
+  </Card>
+
+  <Card title="Leave" icon="calendar" href="/api-reference/endpoints/leave-requests">
+    Create leave requests and manage the leave ledger.
+  </Card>
+
+  <Card title="Documents" icon="file" href="/api-reference/endpoints/documents">
+    Upload, retrieve, and manage employee documents.
+  </Card>
+</CardGroup>
+
+## Errors
+
+| Code | Meaning |
+| --- | --- |
+| `400` | Validation error in the request body or query. |
+| `401` | Missing or invalid Cognito token. |
+| `403` | Invalid `x-api-key`. |
+| `404` | Resource not found. |
