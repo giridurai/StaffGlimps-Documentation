@@ -1,0 +1,5186 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "StaffGlimpse API",
+    "description": "StaffGlimpse is a multi-tenant HR and Payroll SaaS platform. This OpenAPI 3.0 specification covers all REST endpoints for Company, User, Metadata, Messaging, Attendance, Document, and Leave management.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "StaffGlimpse Support",
+      "url": "https://staffglimpse.com"
+    },
+    "license": {
+      "name": "Proprietary",
+      "url": "https://staffglimpse.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://r00buwtnh1.execute-api.ap-south-1.amazonaws.com/live",
+      "description": "Production - Company API"
+    },
+    {
+      "url": "https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live",
+      "description": "Production - User / Profile API"
+    },
+    {
+      "url": "https://0wk40w2jbj.execute-api.ap-south-1.amazonaws.com/live",
+      "description": "Production - Metadata API"
+    },
+    {
+      "url": "https://7gt46stdyc.execute-api.ap-south-1.amazonaws.com/live",
+      "description": "Production - Message / Notification API"
+    },
+    {
+      "url": "https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live",
+      "description": "Production - Attendance API"
+    },
+    {
+      "url": "https://6e52pmjmy4.execute-api.ap-south-1.amazonaws.com/live",
+      "description": "Production - Document API"
+    },
+    {
+      "url": "https://5bknc0zrv5.execute-api.ap-south-1.amazonaws.com/live",
+      "description": "Production - Leave API"
+    },
+    {
+      "url": "https://d2ikeisatr21la.cloudfront.net",
+      "description": "Production - Document Cloud (S3/CloudFront)"
+    },
+    {
+      "url": "/api",
+      "description": "Development (localhost) - all services proxied through /api"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Company",
+      "description": "Company profile and registration"
+    },
+    {
+      "name": "Departments",
+      "description": "Department CRUD operations"
+    },
+    {
+      "name": "Roles & Permissions",
+      "description": "Role and permission management"
+    },
+    {
+      "name": "Users",
+      "description": "User profile and account management"
+    },
+    {
+      "name": "Metadata",
+      "description": "Global metadata configuration"
+    },
+    {
+      "name": "Messages",
+      "description": "In-app notifications and messaging"
+    },
+    {
+      "name": "Attendance",
+      "description": "Punch in/out, attendance reports, and leave requests"
+    },
+    {
+      "name": "Documents",
+      "description": "Document upload, listing, and retrieval"
+    },
+    {
+      "name": "Leave Policies",
+      "description": "Leave policy and holiday configuration (Company)"
+    },
+    {
+      "name": "Leave Requests",
+      "description": "Employee leave requests and ledger (User)"
+    },
+    {
+      "name": "Payroll",
+      "description": "Payroll items and salary configuration"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": [],
+      "xApiKey": []
+    }
+  ],
+  "paths": {
+    "/company": {
+      "get": {
+        "tags": [
+          "Company"
+        ],
+        "summary": "Get Company Profile",
+        "description": "Retrieves the current company's profile information.",
+        "operationId": "getCompany",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseCompany"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "CompanyName": "Acme Corp",
+                    "Email": "admin@acme.com",
+                    "AccountURL": "acme",
+                    "Plan": "Enterprise",
+                    "CreatedDate": "2024-01-15T00:00:00Z",
+                    "Image": "https://...",
+                    "Status": "Active",
+                    "BillCycle": "Monthly",
+                    "PaymentMethod": "Credit Card",
+                    "ExpiringDate": "2025-01-15T00:00:00Z",
+                    "DomainStatus": "Verified",
+                    "InvoiceID": "INV-001"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid token"
+          },
+          "403": {
+            "description": "Forbidden - invalid API key"
+          },
+          "404": {
+            "description": "Company not found"
+          }
+        }
+      }
+    },
+    "/company/register": {
+      "post": {
+        "tags": [
+          "Company"
+        ],
+        "summary": "Register a New Company",
+        "description": "Creates a new company account during onboarding.",
+        "operationId": "addCompany",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterCompanyRequest"
+              },
+              "example": {
+                "name": "Acme Corporation",
+                "email": "admin@acme.com",
+                "password": "SecurePass123!",
+                "confirmPassword": "SecurePass123!"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Company registered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseCompany"
+                },
+                "example": {
+                  "message": "Company registered successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "companyId": "cmp_abc123",
+                    "message": "Registration successful"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/company/department/get": {
+      "get": {
+        "tags": [
+          "Departments"
+        ],
+        "summary": "Get All Departments",
+        "description": "Returns a list of all departments for the company. Supports optional search via query parameters.",
+        "operationId": "getDepartments",
+        "parameters": [
+          {
+            "name": "departmentName",
+            "in": "query",
+            "description": "Filter departments by name",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "matchType",
+            "in": "query",
+            "description": "Match mode for departmentName filter",
+            "schema": {
+              "enum": [
+                "like",
+                "startsWith"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of departments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDepartments"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "departments": [
+                      {
+                        "departmentId": "dep_001",
+                        "departmentName": "Engineering",
+                        "description": "Software development",
+                        "noOfEmployees": 45,
+                        "isActive": true,
+                        "isDeleted": false,
+                        "sNo": 1,
+                        "status": "Active"
+                      },
+                      {
+                        "departmentId": "dep_002",
+                        "departmentName": "HR",
+                        "description": "Human Resources",
+                        "noOfEmployees": 8,
+                        "isActive": true,
+                        "isDeleted": false,
+                        "sNo": 2,
+                        "status": "Active"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/company/department/create": {
+      "post": {
+        "tags": [
+          "Departments"
+        ],
+        "summary": "Create a Department",
+        "description": "Creates a new department in the company.",
+        "operationId": "addDepartment",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddDepartmentRequest"
+              },
+              "example": {
+                "departmentName": "Marketing",
+                "description": "Brand and content marketing team",
+                "noOfEmployees": 12,
+                "isActive": true,
+                "status": "Active"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Department created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDepartment"
+                },
+                "example": {
+                  "message": "Department created successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "departmentId": "dep_new123",
+                    "message": "Created"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/company/department/update": {
+      "put": {
+        "tags": [
+          "Departments"
+        ],
+        "summary": "Update a Department",
+        "description": "Updates an existing department's details.",
+        "operationId": "updateDepartment",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDepartmentRequest"
+              },
+              "example": {
+                "departmentId": "dep_001",
+                "departmentName": "Engineering (Updated)",
+                "description": "All engineering teams",
+                "noOfEmployees": 50,
+                "isActive": true,
+                "isDeleted": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Department updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDepartment"
+                },
+                "example": {
+                  "message": "Department updated successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "departmentId": "dep_001",
+                    "message": "Updated"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/company/role/get": {
+      "parameters": [
+        {
+          "name": "roleId",
+          "in": "query",
+          "required": true,
+          "description": "ID of the role to retrieve",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/company/role/get?roleId={roleId}": {
+      "get": {
+        "tags": [
+          "Roles & Permissions"
+        ],
+        "summary": "Get Role by ID",
+        "description": "Retrieves a single role by its ID.",
+        "operationId": "getRoleById",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "query",
+            "required": true,
+            "description": "Role ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseRoles"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "roles": [
+                      {
+                        "roleId": "role_001",
+                        "roleName": "Admin",
+                        "description": "Full system access",
+                        "departmentId": "dep_001",
+                        "departmentName": "Engineering",
+                        "equivalentRolePosition": "IT Manager",
+                        "isActive": true,
+                        "isDeleted": false,
+                        "sNo": 1
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Role not found"
+          }
+        }
+      }
+    },
+    "/company/role/create": {
+      "post": {
+        "tags": [
+          "Roles & Permissions"
+        ],
+        "summary": "Create a Role",
+        "description": "Creates a new role in the company.",
+        "operationId": "addRole",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddRoleRequest"
+              },
+              "example": {
+                "roleName": "Manager",
+                "description": "Team manager with elevated permissions",
+                "departmentId": "dep_001",
+                "departmentName": "Engineering",
+                "equivalentRolePosition": "Engineering Manager",
+                "designationName": "Manager"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseRole"
+                },
+                "example": {
+                  "message": "Role created successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "roleId": "role_new456",
+                    "message": "Created"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/company/role/update": {
+      "put": {
+        "tags": [
+          "Roles & Permissions"
+        ],
+        "summary": "Update a Role",
+        "description": "Updates an existing role's details.",
+        "operationId": "updateRole",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoleRequest"
+              },
+              "example": {
+                "roleId": "role_001",
+                "roleName": "Senior Admin",
+                "description": "Senior administrator with extended permissions",
+                "departmentId": "dep_001",
+                "departmentName": "Engineering",
+                "equivalentRolePosition": "IT Director",
+                "isActive": true,
+                "isDeleted": false,
+                "designationName": "Director"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseRole"
+                },
+                "example": {
+                  "message": "Role updated successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "roleId": "role_001",
+                    "message": "Updated"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/company/role/delete": {
+      "parameters": [
+        {
+          "name": "roleId",
+          "in": "query",
+          "required": true,
+          "description": "ID of the role to delete",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/company/role/delete?roleId={roleId}": {
+      "get": {
+        "tags": [
+          "Roles & Permissions"
+        ],
+        "summary": "Delete a Role",
+        "description": "Soft-deletes a role by ID.",
+        "operationId": "deleteRole",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "query",
+            "required": true,
+            "description": "Role ID to delete",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseRole"
+                },
+                "example": {
+                  "message": "Role deleted successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "roleId": "role_001",
+                    "message": "Deleted"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Role not found"
+          }
+        }
+      }
+    },
+    "/company/role/permissions/get": {
+      "parameters": [
+        {
+          "name": "roleId",
+          "in": "query",
+          "required": true,
+          "description": "Role ID to fetch permissions for",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/company/role/permissions/get?roleId={roleId}": {
+      "get": {
+        "tags": [
+          "Roles & Permissions"
+        ],
+        "summary": "Get Role Permissions",
+        "description": "Retrieves the permission matrix assigned to a specific role.",
+        "operationId": "getRolePermissions",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "query",
+            "required": true,
+            "description": "Role ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePermissions"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "permissions": [
+                      {
+                        "module": "holidays",
+                        "read": true,
+                        "write": false,
+                        "create": false,
+                        "delete": false,
+                        "import": false,
+                        "export": false
+                      }
+                    ],
+                    "roleId": "role_001"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Role not found"
+          }
+        }
+      }
+    },
+    "/company/role/permissions/update": {
+      "put": {
+        "tags": [
+          "Roles & Permissions"
+        ],
+        "summary": "Update Role Permissions",
+        "description": "Updates the permission matrix for a role.",
+        "operationId": "updateRolePermissions",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePermissionsRequest"
+              },
+              "example": {
+                "roleId": "role_001",
+                "permissions": [
+                  {
+                    "module": "holidays",
+                    "read": true,
+                    "write": true,
+                    "create": true,
+                    "delete": false,
+                    "import": false,
+                    "export": true
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Permissions updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseRole"
+                },
+                "example": {
+                  "message": "Permissions updated successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "roleId": "role_001",
+                    "message": "Updated"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          }
+        }
+      }
+    },
+    "/company/role/users/count": {
+      "parameters": [
+        {
+          "name": "roleId",
+          "in": "query",
+          "required": true,
+          "description": "Role ID to count users for",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/company/role/users/count?roleId={roleId}": {
+      "get": {
+        "tags": [
+          "Roles & Permissions"
+        ],
+        "summary": "Get User Count for a Role",
+        "description": "Returns the number of users assigned to a specific role.",
+        "operationId": "getRoleUserCount",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "query",
+            "required": true,
+            "description": "Role ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUserCount"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "roleId": "role_001",
+                    "userCount": 12
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Role not found"
+          }
+        }
+      }
+    },
+    "/profile": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get Current User Profile",
+        "description": "Returns the profile of the currently authenticated user.",
+        "operationId": "getCurrentUser",
+        "responses": {
+          "200": {
+            "description": "Current user profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUserProfile"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "firstName": "John",
+                    "lastName": "Doe",
+                    "emailId": "john.doe@acme.com",
+                    "phoneNumber": "+1234567890",
+                    "userRole": "ADMIN",
+                    "isLocked": false,
+                    "isActive": true,
+                    "isDeleted": false,
+                    "companyId": "cmp_abc123",
+                    "managerName": "Jane Smith",
+                    "leadName": "IT Department"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/profile/get": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get Users",
+        "description": "Returns a list of users. Supports filtering by email, name, sorting, and pagination.",
+        "operationId": "getUsers",
+        "parameters": [
+          {
+            "name": "emailId",
+            "in": "query",
+            "description": "Filter by email address",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "firstName",
+            "in": "query",
+            "description": "Filter by first name",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Enable sorting",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "isActive",
+            "in": "query",
+            "description": "Filter by active status",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of users to return",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUserProfiles"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "users": [
+                      {
+                        "firstName": "Alice",
+                        "lastName": "Johnson",
+                        "emailId": "alice@acme.com",
+                        "phoneNumber": "+1987654321",
+                        "userRole": "USER",
+                        "isLocked": false,
+                        "isActive": true,
+                        "isDeleted": false,
+                        "companyId": "cmp_abc123",
+                        "managerName": "John Doe",
+                        "leadName": "HR Department",
+                        "createdDate": "2024-02-10T00:00:00Z"
+                      },
+                      {
+                        "firstName": "Bob",
+                        "lastName": "Smith",
+                        "emailId": "bob@acme.com",
+                        "phoneNumber": "+1122334455",
+                        "userRole": "USER",
+                        "isLocked": false,
+                        "isActive": true,
+                        "isDeleted": false,
+                        "companyId": "cmp_abc123",
+                        "managerName": "John Doe",
+                        "leadName": "IT Department",
+                        "createdDate": "2024-03-05T00:00:00Z"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/profile/create": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Create a User",
+        "description": "Creates a new user account in the company.",
+        "operationId": "createUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserProfileRequest"
+              },
+              "example": {
+                "emailId": "new.user@acme.com",
+                "firstName": "New",
+                "lastName": "User",
+                "password": "SecurePass123!",
+                "countryCode": "+1",
+                "phoneNumber": "5551234567",
+                "userRole": "USER",
+                "address": {
+                  "physicalAddress": {
+                    "addLine1": "123 Main St",
+                    "addLine2": "Suite 100",
+                    "state": "CA",
+                    "city": "San Francisco",
+                    "pinCode": "94105"
+                  },
+                  "mailingAddress": {
+                    "addLine1": "123 Main St",
+                    "addLine2": "Suite 100",
+                    "state": "CA",
+                    "city": "San Francisco",
+                    "pinCode": "94105"
+                  },
+                  "isPhysicalAndMailingAddressSame": true
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUserProfileAction"
+                },
+                "example": {
+                  "message": "User created successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "message": "User created",
+                    "customerId": 42
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/profile/update": {
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Update a User",
+        "description": "Updates an existing user's profile information.",
+        "operationId": "updateUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserProfileRequest"
+              },
+              "example": {
+                "customerId": 42,
+                "firstName": "New",
+                "lastName": "User (Updated)",
+                "emailId": "new.user@acme.com",
+                "phoneNumber": "+1555987654",
+                "isActive": true,
+                "userRole": "USER"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUserProfileAction"
+                },
+                "example": {
+                  "message": "User updated successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "message": "User updated",
+                    "customerId": 42,
+                    "updatedFields": {
+                      "firstName": "New",
+                      "lastName": "User (Updated)"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/profile/lock": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Lock a User Account",
+        "description": "Locks a user account, preventing login.",
+        "operationId": "lockUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LockUserRequest"
+              },
+              "example": {
+                "customerId": 42,
+                "lockReason": "Suspicious activity detected"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User locked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUserProfileAction"
+                },
+                "example": {
+                  "message": "User locked successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "message": "User locked",
+                    "customerId": 42
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/profile/unlock": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Unlock a User Account",
+        "description": "Unlocks a previously locked user account.",
+        "operationId": "unlockUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnlockUserRequest"
+              },
+              "example": {
+                "customerId": 42
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User unlocked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUserProfileAction"
+                },
+                "example": {
+                  "message": "User unlocked successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "message": "User unlocked",
+                    "customerId": 42
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/profile/delete": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Delete a User",
+        "description": "Soft-deletes a user account from the system.",
+        "operationId": "deleteUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteUserRequest"
+              },
+              "example": {
+                "customerId": 42,
+                "deleteReason": "Employee terminated"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUserProfileAction"
+                },
+                "example": {
+                  "message": "User deleted successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "message": "User deleted",
+                    "customerId": 42
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/metadata/create": {
+      "post": {
+        "tags": [
+          "Metadata"
+        ],
+        "summary": "Create Metadata",
+        "description": "Creates a new metadata entry for configurable settings.",
+        "operationId": "createMetadata",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MetadataRequest"
+              },
+              "example": {
+                "key": "organizationName",
+                "value": "Acme Corp",
+                "isActive": true,
+                "category": "companyInfo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Metadata created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMetadata"
+                },
+                "example": {
+                  "message": "Metadata created successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "metadataId": "meta_001",
+                    "message": "Created"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/metadata/get": {
+      "get": {
+        "tags": [
+          "Metadata"
+        ],
+        "summary": "Get All Metadata",
+        "description": "Returns all metadata entries. Supports filtering and sorting.",
+        "operationId": "getMetadata",
+        "parameters": [
+          {
+            "name": "isActive",
+            "in": "query",
+            "description": "Filter by active status",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sorting",
+            "in": "query",
+            "description": "Enable sorting",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "isDeleted",
+            "in": "query",
+            "description": "Filter by deleted status",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "metadataId",
+            "in": "query",
+            "description": "Get a specific metadata entry by ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Metadata list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMetadataList"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "metadata": [
+                      {
+                        "metadataId": "meta_001",
+                        "key": "organizationName",
+                        "value": "Acme Corp",
+                        "category": "companyInfo",
+                        "isActive": true,
+                        "isDeleted": false,
+                        "createdAt": "2024-01-15T00:00:00Z"
+                      },
+                      {
+                        "metadataId": "meta_002",
+                        "key": "fiscalYearStart",
+                        "value": "2024-04-01",
+                        "category": "finance",
+                        "isActive": true,
+                        "isDeleted": false,
+                        "createdAt": "2024-01-15T00:00:00Z"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/metadata/update": {
+      "put": {
+        "tags": [
+          "Metadata"
+        ],
+        "summary": "Update Metadata",
+        "description": "Updates an existing metadata entry.",
+        "operationId": "updateMetadata",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MetadataRequest"
+              },
+              "example": {
+                "metadataId": "meta_001",
+                "key": "organizationName",
+                "value": "Acme Corporation (Updated)",
+                "isActive": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Metadata updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMetadata"
+                },
+                "example": {
+                  "message": "Metadata updated successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "metadataId": "meta_001",
+                    "message": "Updated"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/message/get": {
+      "get": {
+        "tags": [
+          "Messages"
+        ],
+        "summary": "Get Messages",
+        "description": "Retrieves messages/notifications. Supports category filtering and pagination.",
+        "operationId": "getMessages",
+        "parameters": [
+          {
+            "name": "msgCategory",
+            "in": "query",
+            "description": "Filter by category: inbox, sent, or alert",
+            "schema": {
+              "enum": [
+                "inbox",
+                "sent",
+                "alert"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "isRead",
+            "in": "query",
+            "description": "Filter by read status",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of messages to return",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMessages"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "messages": [
+                      {
+                        "msgId": "msg_001",
+                        "msgTopic": "Leave Request",
+                        "msgSubject": "New leave request pending approval",
+                        "msgBody": "John Doe has submitted a leave request for 2024-12-20 to 2024-12-23.",
+                        "msgCategory": "inbox",
+                        "isRead": false,
+                        "isActive": true,
+                        "isDeleted": false,
+                        "createdDate": "2024-12-18T10:00:00Z"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/message/get/count": {
+      "get": {
+        "tags": [
+          "Messages"
+        ],
+        "summary": "Get Notification Count",
+        "description": "Returns the count of unread notifications (bell icon badge).",
+        "operationId": "getNotificationCount",
+        "responses": {
+          "200": {
+            "description": "Notification count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseNotificationCount"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "unreadCount": 5,
+                    "totalCount": 23
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/message/create": {
+      "post": {
+        "tags": [
+          "Messages"
+        ],
+        "summary": "Create a Message",
+        "description": "Creates a new in-app notification or message.",
+        "operationId": "createMessage",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMessageRequest"
+              },
+              "example": {
+                "msgTopic": "Payroll Generated",
+                "msgSubject": "November 2024 payroll has been generated",
+                "msgBody": "The payroll for November 2024 has been processed. Please review and approve.",
+                "msgCategory": "alert",
+                "targetUserIds": [
+                  "user_001",
+                  "user_002"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Message created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMessage"
+                },
+                "example": {
+                  "message": "Message created successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "messageId": "msg_new789",
+                    "message": "Created"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/message/update": {
+      "put": {
+        "tags": [
+          "Messages"
+        ],
+        "summary": "Update a Message",
+        "description": "Updates an existing message (e.g., mark as read).",
+        "operationId": "updateMessage",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMessageRequest"
+              },
+              "example": {
+                "messageId": "msg_001",
+                "isRead": true,
+                "isActive": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Message updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMessage"
+                },
+                "example": {
+                  "message": "Message updated successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "messageId": "msg_001",
+                    "message": "Updated"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/attendance/signin/status": {
+      "get": {
+        "tags": [
+          "Attendance"
+        ],
+        "summary": "Get Sign-In Status",
+        "description": "Returns the current attendance status for the authenticated user (punched in/out, on break, etc.).",
+        "operationId": "getSignInStatus",
+        "responses": {
+          "200": {
+            "description": "Current sign-in status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSignInStatus"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "signedIn": true,
+                    "signInTime": "2024-12-18T09:00:00Z",
+                    "signOutTime": null,
+                    "systemSignOut": false,
+                    "currentStatus": "PUNCHED_IN",
+                    "attendanceId": "att_12345",
+                    "punchDate": "2024-12-18"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/attendance/signin": {
+      "post": {
+        "tags": [
+          "Attendance"
+        ],
+        "summary": "Punch In (Sign In)",
+        "description": "Records a sign-in/punch-in event. Requires location data (latitude, longitude, address, accuracy, source).",
+        "operationId": "punchIn",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocationRequest"
+              },
+              "example": {
+                "latitude": 37.7749,
+                "longitude": -122.4194,
+                "address": "123 Market St, San Francisco, CA",
+                "accuracy": 10,
+                "source": "web"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Punched in successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSignInResponse"
+                },
+                "example": {
+                  "message": "Signed in successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "message": "Signed in",
+                    "signedIn": true,
+                    "signInTime": "2024-12-18T09:00:00Z",
+                    "signInLocation": {
+                      "latitude": 37.7749,
+                      "longitude": -122.4194,
+                      "address": "123 Market St, San Francisco, CA",
+                      "accuracy": 10,
+                      "source": "web"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Already punched in or invalid location"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/attendance/signout": {
+      "post": {
+        "tags": [
+          "Attendance"
+        ],
+        "summary": "Punch Out (Sign Out)",
+        "description": "Records a sign-out/punch-out event.",
+        "operationId": "punchOut",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocationRequest"
+              },
+              "example": {
+                "latitude": 37.7749,
+                "longitude": -122.4194,
+                "address": "123 Market St, San Francisco, CA",
+                "accuracy": 10,
+                "source": "web"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Punched out successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSignInResponse"
+                },
+                "example": {
+                  "message": "Signed out successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "message": "Signed out",
+                    "signedIn": false,
+                    "signInTime": "2024-12-18T09:00:00Z",
+                    "signOutTime": "2024-12-18T17:30:00Z"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not punched in"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/attendance/pending/week": {
+      "get": {
+        "tags": [
+          "Attendance"
+        ],
+        "summary": "Get Pending Week",
+        "description": "Returns attendance records for the current week that are pending admin approval.",
+        "operationId": "getPendingWeek",
+        "responses": {
+          "200": {
+            "description": "Pending week records",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseAny"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "pendingRecords": [
+                      {
+                        "employeeId": "emp_001",
+                        "employeeName": "John Doe",
+                        "pendingDays": 3,
+                        "weekStartDate": "2024-12-16"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/attendance/approve/week": {
+      "post": {
+        "tags": [
+          "Attendance"
+        ],
+        "summary": "Approve Pending Week",
+        "description": "Approves all pending attendance records for a given week.",
+        "operationId": "approveWeek",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveWeekRequest"
+              },
+              "example": {
+                "weekStartDate": "2024-12-16",
+                "approvedBy": "admin_user_id",
+                "comments": "All records verified"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Week approved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseAny"
+                },
+                "example": {
+                  "message": "Week approved successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "approvedRecords": 15,
+                    "weekStartDate": "2024-12-16"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No pending records found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/attendance/report/monthly": {
+      "get": {
+        "tags": [
+          "Attendance"
+        ],
+        "summary": "Get Monthly Attendance Report",
+        "description": "Returns a monthly attendance report. Specify year and month as query parameters.",
+        "operationId": "getMonthlyAttendanceReport",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "query",
+            "description": "Year (e.g., 2024)",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "description": "Month number 1-12",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Monthly attendance report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseAny"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "report": [
+                      {
+                        "employeeId": "emp_001",
+                        "employeeName": "John Doe",
+                        "totalWorkingDays": 22,
+                        "totalPunchedIn": 21,
+                        "totalPunchedOut": 21,
+                        "lateCount": 2,
+                        "earlyLeaveCount": 1,
+                        "totalMinutes": 10560,
+                        "month": "December",
+                        "year": 2024
+                      }
+                    ],
+                    "month": "December",
+                    "year": 2024
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/attendance/leave": {
+      "post": {
+        "tags": [
+          "Attendance"
+        ],
+        "summary": "Request Leave (Attendance Module)",
+        "description": "Submits a leave request from the attendance module.",
+        "operationId": "requestLeave",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLeaveRequest"
+              },
+              "example": {
+                "leaveType": "Casual",
+                "fromDate": "2024-12-25",
+                "toDate": "2024-12-26",
+                "days": 2,
+                "reason": "Family event",
+                "documents": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Leave request submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseAny"
+                },
+                "example": {
+                  "message": "Leave request submitted successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "leaveRequestId": "lr_999",
+                    "status": "PENDING"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/attendance/leave/status": {
+      "get": {
+        "tags": [
+          "Attendance"
+        ],
+        "summary": "Get Leave Status",
+        "description": "Returns the current leave balance/status for the authenticated user.",
+        "operationId": "getLeaveStatus",
+        "responses": {
+          "200": {
+            "description": "Leave status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseAny"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "leaveBalance": [
+                      {
+                        "leaveType": "Annual",
+                        "totalAllowed": 20,
+                        "used": 5,
+                        "remaining": 15,
+                        "pending": 2
+                      },
+                      {
+                        "leaveType": "Casual",
+                        "totalAllowed": 10,
+                        "used": 3,
+                        "remaining": 7,
+                        "pending": 0
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/attendance/leave/requests": {
+      "get": {
+        "tags": [
+          "Attendance"
+        ],
+        "summary": "Get Leave Requests (Attendance Module)",
+        "description": "Returns leave requests submitted through the attendance module.",
+        "operationId": "getAttendanceLeaveRequests",
+        "responses": {
+          "200": {
+            "description": "Leave requests list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseAny"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "leaveRequests": [
+                      {
+                        "leaveRequestId": "lr_100",
+                        "userId": "emp_001",
+                        "leaveType": "Annual",
+                        "fromDate": "2024-12-20",
+                        "toDate": "2024-12-23",
+                        "days": 4,
+                        "reason": "Family vacation",
+                        "appliedDate": "2024-12-15",
+                        "status": "PENDING",
+                        "approvedBy": null
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/attendance/leave/approve": {
+      "post": {
+        "tags": [
+          "Attendance"
+        ],
+        "summary": "Approve Leave Request (Attendance Module)",
+        "description": "Approves or rejects a leave request from the attendance module.",
+        "operationId": "approveAttendanceLeave",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveLeaveRequest"
+              },
+              "example": {
+                "leaveRequestId": "lr_100",
+                "action": "approve",
+                "comments": "Enjoy your vacation!",
+                "userId": "emp_001"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Leave request approved/rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseAny"
+                },
+                "example": {
+                  "message": "Leave request approved",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "leaveRequestId": "lr_100",
+                    "status": "APPROVED"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid action or request not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/document/get": {
+      "parameters": [
+        {
+          "name": "documentId",
+          "in": "query",
+          "required": true,
+          "description": "ID of the document to retrieve",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/document/get?documentId={documentId}": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Get Document by ID",
+        "description": "Retrieves a single document's metadata by its ID.",
+        "operationId": "getDocumentById",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "query",
+            "required": true,
+            "description": "Document ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDocument"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "documents": [
+                      {
+                        "documentId": "doc_001",
+                        "fileName": "employment_contract.pdf",
+                        "documentCategory": "HR Documents",
+                        "contentType": "application/pdf",
+                        "description": "Standard employment contract",
+                        "tags": [
+                          "contract"
+                        ],
+                        "isSigned": true,
+                        "isEncrypted": false,
+                        "isShared": true,
+                        "isSensitive": true,
+                        "isDeleted": false,
+                        "isActive": true,
+                        "isPublic": false,
+                        "isVersioned": true,
+                        "version": 1,
+                        "createdDate": "2024-01-10T00:00:00Z",
+                        "createdBy": "admin_001",
+                        "lastModifiedDate": "2024-01-10T00:00:00Z",
+                        "isRead": false,
+                        "s3Key": "documents/emp_001/employment_contract.pdf",
+                        "metadata": {}
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found"
+          }
+        }
+      }
+    },
+    "/document": {
+      "post": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Upload a Document",
+        "description": "Uploads a document file to cloud storage (S3/CloudFront). Accepts multipart/form-data.",
+        "operationId": "uploadDocument",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "The document file to upload"
+                  },
+                  "documentCategory": {
+                    "type": "string",
+                    "description": "Category for the document (set via x-amz-meta-docCategory header)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Document uploaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocUploadResponse"
+                },
+                "example": {
+                  "documentId": "doc_new888"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "File upload error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/document/update": {
+      "put": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Update a Document",
+        "description": "Updates a document's metadata (category, active status, deletion flag).",
+        "operationId": "updateDocument",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDocumentRequest"
+              },
+              "example": {
+                "documentId": "doc_001",
+                "documentCategory": "Archived HR Documents",
+                "isActive": false,
+                "isDeleted": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Document updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocUpdateResponse"
+                },
+                "example": {
+                  "message": "Document updated successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "updatedFields": {
+                      "isDeleted": true,
+                      "documentCategory": "Archived HR Documents",
+                      "isActive": false,
+                      "updatedAt": "2024-12-18T12:00:00Z",
+                      "updatedDate": "2024-12-18",
+                      "updatedBy": "admin_001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/document/{documentId}": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Download a Document",
+        "description": "Retrieves the actual file content of a document from CloudFront. Returns a binary blob. Requires x-token header (Cognito ID token).",
+        "operationId": "downloadDocument",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "description": "Document ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document file content (binary)",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - invalid token"
+          },
+          "404": {
+            "description": "Document not found"
+          }
+        }
+      }
+    },
+    "/company/leave/create": {
+      "post": {
+        "tags": [
+          "Leave Policies"
+        ],
+        "summary": "Create a Leave Policy",
+        "description": "Defines a new leave policy for a specific location (country, province, city, location).",
+        "operationId": "createLeavePolicy",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeavePolicyRequest"
+              },
+              "example": {
+                "metadata": "leavePolicy",
+                "location": {
+                  "country": "IN",
+                  "province": "Maharashtra",
+                  "city": "Mumbai",
+                  "locationName": "Head Office"
+                },
+                "leavePolicy": [
+                  {
+                    "type": "Annual",
+                    "perAnnum": 20,
+                    "frequency": "yearly",
+                    "carryForward": 5,
+                    "rules": "Must be applied 14 days in advance",
+                    "gender": "all"
+                  },
+                  {
+                    "type": "Sick",
+                    "perAnnum": 10,
+                    "frequency": "yearly",
+                    "carryForward": 0,
+                    "rules": "Medical certificate required for 3+ days",
+                    "gender": "all"
+                  }
+                ],
+                "description": "Leave policy for Mumbai head office"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Leave policy created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeavePolicyResponse"
+                },
+                "example": {
+                  "message": "Leave policy created successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "policyId": "pol_abc123",
+                    "message": "Created"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/company/leave/update": {
+      "put": {
+        "tags": [
+          "Leave Policies"
+        ],
+        "summary": "Update a Leave Policy",
+        "description": "Updates an existing leave policy.",
+        "operationId": "updateLeavePolicy",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeavePolicyRequest"
+              },
+              "example": {
+                "metadata": "leavePolicy",
+                "location": {
+                  "country": "IN",
+                  "province": "Maharashtra",
+                  "city": "Mumbai",
+                  "locationName": "Head Office"
+                },
+                "leavePolicy": [
+                  {
+                    "type": "Annual",
+                    "perAnnum": 22,
+                    "frequency": "yearly",
+                    "carryForward": 5,
+                    "rules": "Must be applied 14 days in advance",
+                    "gender": "all"
+                  }
+                ],
+                "description": "Updated leave policy for Mumbai head office"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Leave policy updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeavePolicyResponse"
+                },
+                "example": {
+                  "message": "Leave policy updated successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "policyId": "pol_abc123",
+                    "message": "Updated"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/company/leave/get": {
+      "parameters": [
+        {
+          "name": "metadata",
+          "in": "query",
+          "required": true,
+          "description": "Use 'provinceHolidays'",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "year",
+          "in": "query",
+          "required": true,
+          "description": "Year",
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "country",
+          "in": "query",
+          "required": true,
+          "description": "Country code",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "province",
+          "in": "query",
+          "required": true,
+          "description": "Province/state",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "city",
+          "in": "query",
+          "required": true,
+          "description": "City",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "locationName",
+          "in": "query",
+          "required": true,
+          "description": "Specific location name",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/company/leave/get?metadata=nationalHolidays&year={year}&country={country}": {
+      "get": {
+        "tags": [
+          "Leave Policies"
+        ],
+        "summary": "Get National Holidays",
+        "description": "Returns national/regional public holidays for a given country and year.",
+        "operationId": "getNationalHolidays",
+        "parameters": [
+          {
+            "name": "metadata",
+            "in": "query",
+            "required": true,
+            "description": "Use 'nationalHolidays'",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": true,
+            "description": "Year",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": true,
+            "description": "Country code",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "National holidays",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HolidaysResponse"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "holidays": [
+                      {
+                        "date": "2024-01-26",
+                        "name": "Republic Day",
+                        "type": "national",
+                        "description": "India's Republic Day",
+                        "isOptional": false
+                      },
+                      {
+                        "date": "2024-08-15",
+                        "name": "Independence Day",
+                        "type": "national",
+                        "description": "India's Independence Day",
+                        "isOptional": false
+                      },
+                      {
+                        "date": "2024-10-02",
+                        "name": "Gandhi Jayanti",
+                        "type": "national",
+                        "description": "Mahatma Gandhi's birthday",
+                        "isOptional": false
+                      }
+                    ],
+                    "year": 2024,
+                    "country": "IN"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No holidays found for this country/year"
+          }
+        }
+      }
+    },
+    "/company/leave/get?metadata=provinceHolidays&year={year}&country={country}&province={province}&city={city}&locationName={locationName}": {
+      "get": {
+        "tags": [
+          "Leave Policies"
+        ],
+        "summary": "Get Province / Regional Holidays",
+        "description": "Returns regional/provincial holidays for a specific location.",
+        "operationId": "getProvinceHolidays",
+        "parameters": [
+          {
+            "name": "metadata",
+            "in": "query",
+            "required": true,
+            "description": "Use 'provinceHolidays'",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": true,
+            "description": "Year",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": true,
+            "description": "Country code",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "province",
+            "in": "query",
+            "required": true,
+            "description": "Province/state",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "required": true,
+            "description": "City",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "locationName",
+            "in": "query",
+            "required": true,
+            "description": "Location name",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Province holidays",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HolidaysResponse"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "holidays": [
+                      {
+                        "date": "2024-05-01",
+                        "name": "Maharashtra Day",
+                        "type": "regional",
+                        "description": "State day of Maharashtra",
+                        "isOptional": false
+                      },
+                      {
+                        "date": "2024-06-07",
+                        "name": "Buddha Purnima",
+                        "type": "regional",
+                        "description": "Buddha's birthday (regional observance)",
+                        "isOptional": true
+                      }
+                    ],
+                    "year": 2024,
+                    "country": "IN",
+                    "province": "Maharashtra",
+                    "city": "Mumbai",
+                    "locationName": "Head Office"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No holidays found"
+          }
+        }
+      }
+    },
+    "/leave/ledger/get": {
+      "parameters": [
+        {
+          "name": "leaveType",
+          "in": "query",
+          "required": true,
+          "description": "Filter ledger by a specific leave type",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/leave/ledger/get?leaveType={leaveType}": {
+      "get": {
+        "tags": [
+          "Leave Requests"
+        ],
+        "summary": "Get Leave Ledger by Type",
+        "description": "Returns the leave ledger filtered by a specific leave type.",
+        "operationId": "getLeaveLedgerByType",
+        "parameters": [
+          {
+            "name": "leaveType",
+            "in": "query",
+            "required": true,
+            "description": "Leave type to filter by (e.g., Annual, Sick, Casual)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Leave ledger for type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaveLedgerResponse"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "ledger": [
+                      {
+                        "leaveType": "Annual",
+                        "totalAllowed": 20,
+                        "usedLeaves": 5,
+                        "remainingLeaves": 15,
+                        "carryForward": 5,
+                        "pendingApproval": 2
+                      }
+                    ],
+                    "year": 2024
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Leave type not found"
+          }
+        }
+      }
+    },
+    "/leave/request/get": {
+      "parameters": [
+        {
+          "name": "type",
+          "in": "query",
+          "required": true,
+          "description": "Must be 'manager'",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "leaveRequestId",
+          "in": "query",
+          "required": true,
+          "description": "ID of the leave request",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/leave/request/get?leaveRequestId={leaveRequestId}": {
+      "get": {
+        "tags": [
+          "Leave Requests"
+        ],
+        "summary": "Get Leave Request by ID",
+        "description": "Retrieves a single leave request by its ID.",
+        "operationId": "getLeaveRequestById",
+        "parameters": [
+          {
+            "name": "leaveRequestId",
+            "in": "query",
+            "required": true,
+            "description": "Leave request ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Leave request details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaveRequestResponse"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "leaveRequestId": "lr_100",
+                    "userId": "emp_001",
+                    "leaveType": "Annual",
+                    "fromDate": "2024-12-20",
+                    "toDate": "2024-12-23",
+                    "days": 4,
+                    "reason": "Family vacation",
+                    "appliedDate": "2024-12-15T10:00:00Z",
+                    "approvedDate": null,
+                    "approvedBy": null,
+                    "rejectedDate": null,
+                    "rejectedBy": null,
+                    "managerComments": null,
+                    "userComments": "Looking forward to it!",
+                    "status": "PENDING",
+                    "documents": []
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Leave request not found"
+          }
+        }
+      }
+    },
+    "/leave/request/create": {
+      "post": {
+        "tags": [
+          "Leave Requests"
+        ],
+        "summary": "Create a Leave Request",
+        "description": "Submits a new leave request on behalf of the authenticated user.",
+        "operationId": "createLeaveRequest",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLeaveRequest"
+              },
+              "example": {
+                "leaveType": "Annual",
+                "fromDate": "2024-12-20",
+                "toDate": "2024-12-23",
+                "days": 4,
+                "reason": "Family vacation to Goa",
+                "documents": [
+                  {
+                    "documentId": "doc_001",
+                    "documentName": "Flight itinerary.pdf",
+                    "documentContentType": "application/pdf"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Leave request created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseAny"
+                },
+                "example": {
+                  "message": "Leave request submitted successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "leaveRequestId": "lr_new555",
+                    "status": "PENDING"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error - insufficient leave balance or invalid dates"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/leave/request/update": {
+      "post": {
+        "tags": [
+          "Leave Requests"
+        ],
+        "summary": "Update a Leave Request",
+        "description": "Updates a leave request's status. Use type=user for employee actions (cancel, resubmit, delete). Use type=manager for manager actions (approve, reject).",
+        "operationId": "updateLeaveRequest",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "description": "Actor type: 'user' or 'manager'",
+            "schema": {
+              "enum": [
+                "user",
+                "manager"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLeaveRequest"
+              },
+              "example": {
+                "leaveRequestId": "lr_100",
+                "userId": "emp_001",
+                "action": "approve",
+                "comments": "Enjoy your vacation!",
+                "managerComments": "Approved - team is covered"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Leave request updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseAny"
+                },
+                "example": {
+                  "message": "Leave request approved successfully",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "leaveRequestId": "lr_100",
+                    "status": "APPROVED"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid action or request not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/leave/request/get?type=manager": {
+      "get": {
+        "tags": [
+          "Leave Requests"
+        ],
+        "summary": "Get Manager Leave Requests",
+        "description": "Returns all leave requests pending manager approval.",
+        "operationId": "getManagerLeaveRequests",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "description": "Must be set to 'manager'",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Manager leave requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaveRequestsResponse"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "leaveRequests": [
+                      {
+                        "leaveRequestId": "lr_101",
+                        "userId": "emp_002",
+                        "leaveType": "Casual",
+                        "fromDate": "2024-12-26",
+                        "toDate": "2024-12-27",
+                        "days": 2,
+                        "reason": "Personal day",
+                        "appliedDate": "2024-12-17T09:00:00Z",
+                        "status": "PENDING",
+                        "managerComments": null
+                      }
+                    ],
+                    "pagination": {
+                      "totalRecords": 3,
+                      "currentPage": 1,
+                      "totalPages": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/leave/request/get?type=manager&leaveRequestId={leaveRequestId}": {
+      "get": {
+        "tags": [
+          "Leave Requests"
+        ],
+        "summary": "Get Manager Leave Request by ID",
+        "description": "Retrieves a specific manager-view leave request by ID.",
+        "operationId": "getManagerLeaveRequestById",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "description": "Must be 'manager'",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "leaveRequestId",
+            "in": "query",
+            "required": true,
+            "description": "Leave request ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Manager leave request details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaveRequestResponse"
+                },
+                "example": {
+                  "message": "Success",
+                  "responseCode": 200,
+                  "response": "Success",
+                  "result": {
+                    "leaveRequestId": "lr_101",
+                    "userId": "emp_002",
+                    "leaveType": "Casual",
+                    "fromDate": "2024-12-26",
+                    "toDate": "2024-12-27",
+                    "days": 2,
+                    "reason": "Personal day",
+                    "appliedDate": "2024-12-17T09:00:00Z",
+                    "status": "PENDING"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Leave request not found"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "AWS Cognito ID token obtained after user authentication. Pass as the Authorization header."
+      },
+      "xApiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "Static API key shared across all StaffGlimpse services. Found in GlobalUrls.xApiKey."
+      }
+    },
+    "schemas": {
+      "ApiResponseCompany": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "CompanyName": {
+                "type": "string"
+              },
+              "Email": {
+                "type": "string"
+              },
+              "AccountURL": {
+                "type": "string"
+              },
+              "Plan": {
+                "type": "string"
+              },
+              "CreatedDate": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "Image": {
+                "type": "string"
+              },
+              "Status": {
+                "type": "string"
+              },
+              "BillCycle": {
+                "type": "string"
+              },
+              "PaymentMethod": {
+                "type": "string"
+              },
+              "ExpiringDate": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "DomainStatus": {
+                "type": "string"
+              },
+              "InvoiceID": {
+                "type": "string"
+              },
+              "Amount": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "RegisterCompanyRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "email",
+          "password",
+          "confirmPassword"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Company display name"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Admin email address"
+          },
+          "password": {
+            "type": "string",
+            "description": "Admin password"
+          },
+          "confirmPassword": {
+            "type": "string",
+            "description": "Confirm password"
+          }
+        }
+      },
+      "ApiResponseDepartments": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "departments": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Department"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Department": {
+        "type": "object",
+        "properties": {
+          "departmentId": {
+            "type": "string"
+          },
+          "departmentName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "noOfEmployees": {
+            "type": "integer"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "tenantId": {
+            "type": "string"
+          },
+          "sNo": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "AddDepartmentRequest": {
+        "type": "object",
+        "required": [
+          "departmentName"
+        ],
+        "properties": {
+          "departmentName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "noOfEmployees": {
+            "type": "integer"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateDepartmentRequest": {
+        "type": "object",
+        "required": [
+          "departmentId",
+          "departmentName",
+          "isActive",
+          "isDeleted"
+        ],
+        "properties": {
+          "departmentId": {
+            "type": "string"
+          },
+          "departmentName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "noOfEmployees": {
+            "type": "integer"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isDeleted": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ApiResponseDepartment": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "departmentId": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "ApiResponseRoles": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "roles": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Role"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Role": {
+        "type": "object",
+        "properties": {
+          "roleId": {
+            "type": "string"
+          },
+          "roleName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "departmentId": {
+            "type": "string"
+          },
+          "departmentName": {
+            "type": "string"
+          },
+          "equivalentRolePosition": {
+            "type": "string"
+          },
+          "designationName": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "userPermissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sNo": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "AddRoleRequest": {
+        "type": "object",
+        "required": [
+          "roleName",
+          "description",
+          "departmentId",
+          "equivalentRolePosition"
+        ],
+        "properties": {
+          "roleName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "departmentId": {
+            "type": "string"
+          },
+          "departmentName": {
+            "type": "string"
+          },
+          "equivalentRolePosition": {
+            "type": "string"
+          },
+          "designationName": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateRoleRequest": {
+        "type": "object",
+        "required": [
+          "roleId",
+          "roleName",
+          "description",
+          "departmentId",
+          "equivalentRolePosition",
+          "isActive",
+          "isDeleted"
+        ],
+        "properties": {
+          "roleId": {
+            "type": "string"
+          },
+          "roleName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "departmentId": {
+            "type": "string"
+          },
+          "departmentName": {
+            "type": "string"
+          },
+          "equivalentRolePosition": {
+            "type": "string"
+          },
+          "designationName": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isDeleted": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ApiResponseRole": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "roleId": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "ApiResponsePermissions": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "permissions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "module": {
+                      "type": "string"
+                    },
+                    "read": {
+                      "type": "boolean"
+                    },
+                    "write": {
+                      "type": "boolean"
+                    },
+                    "create": {
+                      "type": "boolean"
+                    },
+                    "delete": {
+                      "type": "boolean"
+                    },
+                    "import": {
+                      "type": "boolean"
+                    },
+                    "export": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              },
+              "roleId": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "UpdatePermissionsRequest": {
+        "type": "object",
+        "required": [
+          "roleId",
+          "permissions"
+        ],
+        "properties": {
+          "roleId": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "module": {
+                  "type": "string"
+                },
+                "read": {
+                  "type": "boolean"
+                },
+                "write": {
+                  "type": "boolean"
+                },
+                "create": {
+                  "type": "boolean"
+                },
+                "delete": {
+                  "type": "boolean"
+                },
+                "import": {
+                  "type": "boolean"
+                },
+                "export": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ApiResponseUserCount": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "roleId": {
+                "type": "string"
+              },
+              "userCount": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "ApiResponseUserProfile": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "$ref": "#/components/schemas/UserProfile"
+          }
+        }
+      },
+      "UserProfile": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "middleName": {
+            "type": "string",
+            "nullable": true
+          },
+          "emailId": {
+            "type": "string",
+            "format": "email"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "maskedPhoneNumber": {
+            "type": "string"
+          },
+          "userRole": {
+            "type": "string",
+            "enum": [
+              "USER",
+              "ADMIN"
+            ]
+          },
+          "isLocked": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "isEmailVerified": {
+            "type": "boolean"
+          },
+          "isPasswordReset": {
+            "type": "boolean"
+          },
+          "companyId": {
+            "type": "string"
+          },
+          "customerId": {
+            "type": "integer"
+          },
+          "managerId": {
+            "type": "string"
+          },
+          "managerName": {
+            "type": "string"
+          },
+          "leadId": {
+            "type": "string"
+          },
+          "leadName": {
+            "type": "string"
+          },
+          "createdDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          }
+        }
+      },
+      "ApiResponseUserProfiles": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "users": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              },
+              "LastEvaluatedKey": {
+                "type": "string"
+              },
+              "Count": {
+                "type": "integer"
+              },
+              "ScannedCount": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "CreateUserProfileRequest": {
+        "type": "object",
+        "required": [
+          "emailId",
+          "firstName",
+          "lastName",
+          "password",
+          "countryCode",
+          "phoneNumber",
+          "userRole",
+          "address"
+        ],
+        "properties": {
+          "emailId": {
+            "type": "string",
+            "format": "email"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "middleName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "userRole": {
+            "type": "string",
+            "enum": [
+              "USER",
+              "ADMIN"
+            ]
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          }
+        }
+      },
+      "UpdateUserProfileRequest": {
+        "type": "object",
+        "required": [
+          "customerId"
+        ],
+        "properties": {
+          "customerId": {
+            "type": "integer"
+          },
+          "emailId": {
+            "type": "string",
+            "format": "email"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "middleName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "userRole": {
+            "type": "string",
+            "enum": [
+              "USER",
+              "ADMIN"
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "profileDocument": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileDocument"
+            }
+          }
+        }
+      },
+      "LockUserRequest": {
+        "type": "object",
+        "required": [
+          "customerId",
+          "lockReason"
+        ],
+        "properties": {
+          "customerId": {
+            "type": "integer"
+          },
+          "lockReason": {
+            "type": "string"
+          }
+        }
+      },
+      "UnlockUserRequest": {
+        "type": "object",
+        "required": [
+          "customerId"
+        ],
+        "properties": {
+          "customerId": {
+            "type": "integer"
+          }
+        }
+      },
+      "DeleteUserRequest": {
+        "type": "object",
+        "required": [
+          "customerId",
+          "deleteReason"
+        ],
+        "properties": {
+          "customerId": {
+            "type": "integer"
+          },
+          "deleteReason": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiResponseUserProfileAction": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              },
+              "customerId": {
+                "type": "integer"
+              },
+              "updatedFields": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "Address": {
+        "type": "object",
+        "properties": {
+          "physicalAddress": {
+            "$ref": "#/components/schemas/AddressDetails"
+          },
+          "mailingAddress": {
+            "$ref": "#/components/schemas/AddressDetails"
+          },
+          "isPhysicalAndMailingAddressSame": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AddressDetails": {
+        "type": "object",
+        "properties": {
+          "addLine1": {
+            "type": "string"
+          },
+          "addLine2": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "pinCode": {
+            "type": "string"
+          }
+        }
+      },
+      "ProfileDocument": {
+        "type": "object",
+        "properties": {
+          "documentId": {
+            "type": "string"
+          },
+          "documentName": {
+            "type": "string"
+          },
+          "documentContentType": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiResponseMetadata": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "metadataId": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "ApiResponseMetadataList": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "metadata": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "metadataId": {
+                      "type": "string"
+                    },
+                    "key": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    },
+                    "category": {
+                      "type": "string"
+                    },
+                    "isActive": {
+                      "type": "boolean"
+                    },
+                    "isDeleted": {
+                      "type": "boolean"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "MetadataRequest": {
+        "type": "object",
+        "properties": {
+          "metadataId": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ApiResponseMessages": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "messages": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Message": {
+        "type": "object",
+        "properties": {
+          "msgId": {
+            "type": "string"
+          },
+          "msgTopic": {
+            "type": "string"
+          },
+          "msgSubject": {
+            "type": "string"
+          },
+          "msgBody": {
+            "type": "string"
+          },
+          "msgCategory": {
+            "type": "string",
+            "enum": [
+              "inbox",
+              "sent",
+              "alert"
+            ]
+          },
+          "isRead": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "createdDate": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseNotificationCount": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "unreadCount": {
+                "type": "integer"
+              },
+              "totalCount": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "CreateMessageRequest": {
+        "type": "object",
+        "required": [
+          "msgTopic",
+          "msgSubject",
+          "msgBody",
+          "msgCategory"
+        ],
+        "properties": {
+          "msgTopic": {
+            "type": "string"
+          },
+          "msgSubject": {
+            "type": "string"
+          },
+          "msgBody": {
+            "type": "string"
+          },
+          "msgCategory": {
+            "type": "string",
+            "enum": [
+              "inbox",
+              "sent",
+              "alert"
+            ]
+          },
+          "targetUserIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "UpdateMessageRequest": {
+        "type": "object",
+        "required": [
+          "messageId"
+        ],
+        "properties": {
+          "messageId": {
+            "type": "string"
+          },
+          "isRead": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ApiResponseMessage": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "messageId": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "ApiResponseSignInStatus": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "$ref": "#/components/schemas/SignInStatus"
+          }
+        }
+      },
+      "SignInStatus": {
+        "type": "object",
+        "properties": {
+          "signedIn": {
+            "type": "boolean"
+          },
+          "signInTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "signOutTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "systemSignOut": {
+            "type": "boolean"
+          },
+          "currentStatus": {
+            "type": "string",
+            "enum": [
+              "PUNCHED_IN",
+              "TEA_BREAK",
+              "LUNCH_BREAK",
+              "PUNCHED_OUT"
+            ]
+          },
+          "attendanceId": {
+            "type": "string"
+          },
+          "punchDate": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiResponseSignInResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "$ref": "#/components/schemas/SignInResponse"
+          }
+        }
+      },
+      "SignInResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "signedIn": {
+            "type": "boolean"
+          },
+          "signInTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "signInLocation": {
+            "$ref": "#/components/schemas/Location"
+          }
+        }
+      },
+      "Location": {
+        "type": "object",
+        "properties": {
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "address": {
+            "type": "string"
+          },
+          "accuracy": {
+            "type": "number"
+          },
+          "source": {
+            "type": "string"
+          }
+        }
+      },
+      "LocationRequest": {
+        "type": "object",
+        "required": [
+          "latitude",
+          "longitude",
+          "address",
+          "accuracy",
+          "source"
+        ],
+        "properties": {
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "address": {
+            "type": "string"
+          },
+          "accuracy": {
+            "type": "number"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "web",
+              "mobile"
+            ]
+          }
+        }
+      },
+      "ApproveWeekRequest": {
+        "type": "object",
+        "required": [
+          "weekStartDate"
+        ],
+        "properties": {
+          "weekStartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "approvedBy": {
+            "type": "string"
+          },
+          "comments": {
+            "type": "string"
+          }
+        }
+      },
+      "ApproveLeaveRequest": {
+        "type": "object",
+        "required": [
+          "leaveRequestId",
+          "action"
+        ],
+        "properties": {
+          "leaveRequestId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "approve",
+              "reject"
+            ]
+          },
+          "comments": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiResponseDocuments": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "documents": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Document": {
+        "type": "object",
+        "properties": {
+          "documentId": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "documentCategory": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isSigned": {
+            "type": "boolean"
+          },
+          "isEncrypted": {
+            "type": "boolean"
+          },
+          "isShared": {
+            "type": "boolean"
+          },
+          "isSensitive": {
+            "type": "boolean"
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isPublic": {
+            "type": "boolean"
+          },
+          "isVersioned": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "createdDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "lastModifiedBy": {
+            "type": "string"
+          },
+          "lastModifiedDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isRead": {
+            "type": "boolean"
+          },
+          "s3Key": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          }
+        }
+      },
+      "ApiResponseDocument": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "documents": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          }
+        }
+      },
+      "UpdateDocumentRequest": {
+        "type": "object",
+        "required": [
+          "documentId",
+          "documentCategory",
+          "isActive",
+          "isDeleted"
+        ],
+        "properties": {
+          "documentId": {
+            "type": "string"
+          },
+          "documentCategory": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isDeleted": {
+            "type": "boolean"
+          }
+        }
+      },
+      "DocUploadResponse": {
+        "type": "object",
+        "properties": {
+          "documentId": {
+            "type": "string"
+          }
+        }
+      },
+      "DocUpdateResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "updatedFields": {
+                "type": "object",
+                "properties": {
+                  "isDeleted": {
+                    "type": "boolean"
+                  },
+                  "documentCategory": {
+                    "type": "string"
+                  },
+                  "isActive": {
+                    "type": "boolean"
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "updatedDate": {
+                    "type": "string"
+                  },
+                  "updatedBy": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "LeavePolicyRequest": {
+        "type": "object",
+        "required": [
+          "location",
+          "leavePolicy",
+          "description"
+        ],
+        "properties": {
+          "metadata": {
+            "type": "string"
+          },
+          "location": {
+            "$ref": "#/components/schemas/LocationInfo"
+          },
+          "leavePolicy": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LeavePolicy"
+            }
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "LocationInfo": {
+        "type": "object",
+        "required": [
+          "country"
+        ],
+        "properties": {
+          "country": {
+            "type": "string"
+          },
+          "province": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "locationName": {
+            "type": "string"
+          }
+        }
+      },
+      "LeavePolicy": {
+        "type": "object",
+        "required": [
+          "type",
+          "perAnnum",
+          "frequency",
+          "carryForward",
+          "rules",
+          "gender"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "Annual"
+          },
+          "perAnnum": {
+            "type": "integer"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "monthly",
+              "once",
+              "quarterly",
+              "yearly"
+            ]
+          },
+          "carryForward": {
+            "type": "integer"
+          },
+          "rules": {
+            "type": "string"
+          },
+          "gender": {
+            "type": "string",
+            "enum": [
+              "all",
+              "male",
+              "female"
+            ]
+          }
+        }
+      },
+      "LeavePolicyResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "policyId": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "leavePolicies": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/LeavePolicy"
+                }
+              },
+              "location": {
+                "$ref": "#/components/schemas/LocationInfo"
+              },
+              "description": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "HolidaysResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "holidays": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/HolidayInfo"
+                }
+              },
+              "year": {
+                "type": "integer"
+              },
+              "country": {
+                "type": "string"
+              },
+              "province": {
+                "type": "string"
+              },
+              "city": {
+                "type": "string"
+              },
+              "locationName": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "HolidayInfo": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "national",
+              "regional",
+              "company"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "isOptional": {
+            "type": "boolean"
+          }
+        }
+      },
+      "LeaveLedgerResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "ledger": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/LeaveLedger"
+                }
+              },
+              "year": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "LeaveLedger": {
+        "type": "object",
+        "properties": {
+          "leaveType": {
+            "type": "string"
+          },
+          "totalAllowed": {
+            "type": "integer"
+          },
+          "usedLeaves": {
+            "type": "integer"
+          },
+          "remainingLeaves": {
+            "type": "integer"
+          },
+          "carryForward": {
+            "type": "integer"
+          },
+          "pendingApproval": {
+            "type": "integer"
+          }
+        }
+      },
+      "LeaveRequestsResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "leaveRequests": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/LeaveRequest"
+                }
+              },
+              "pagination": {
+                "type": "object",
+                "properties": {
+                  "totalRecords": {
+                    "type": "integer"
+                  },
+                  "currentPage": {
+                    "type": "integer"
+                  },
+                  "totalPages": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "LeaveRequestResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "$ref": "#/components/schemas/LeaveRequest"
+          }
+        }
+      },
+      "LeaveRequest": {
+        "type": "object",
+        "properties": {
+          "leaveRequestId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "leaveType": {
+            "type": "string"
+          },
+          "fromDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "toDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "days": {
+            "type": "integer"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "appliedDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "approvedDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "approvedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "rejectedDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "rejectedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "managerComments": {
+            "type": "string",
+            "nullable": true
+          },
+          "userComments": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "APPROVED",
+              "REJECTED",
+              "CANCELLED"
+            ]
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LeaveDocument"
+            }
+          }
+        }
+      },
+      "LeaveDocument": {
+        "type": "object",
+        "properties": {
+          "documentId": {
+            "type": "string"
+          },
+          "documentName": {
+            "type": "string"
+          },
+          "documentContentType": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateLeaveRequest": {
+        "type": "object",
+        "required": [
+          "leaveType",
+          "fromDate",
+          "toDate",
+          "days",
+          "reason"
+        ],
+        "properties": {
+          "leaveType": {
+            "type": "string",
+            "enum": [
+              "Annual",
+              "Sick",
+              "Casual",
+              "Maternity",
+              "Paternity",
+              "Emergency"
+            ]
+          },
+          "fromDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "toDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "days": {
+            "type": "integer",
+            "description": "Number of working days (excluding weekends/holidays)"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LeaveDocument"
+            }
+          }
+        }
+      },
+      "UpdateLeaveRequest": {
+        "type": "object",
+        "required": [
+          "leaveRequestId",
+          "action"
+        ],
+        "properties": {
+          "leaveRequestId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "approve",
+              "reject",
+              "cancel",
+              "resubmit",
+              "delete"
+            ]
+          },
+          "comments": {
+            "type": "string"
+          },
+          "managerComments": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiResponseAny": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "responseCode": {
+            "type": "integer"
+          },
+          "response": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}
