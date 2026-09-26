@@ -1,5 +1,5 @@
 ---
-title: "Multi-Tenancy in StaffGlimpse"
+title: "Multi-Tenancy: Company Data Isolation in StaffGlimpse"
 sidebarTitle: "Multi-Tenancy"
 description: "Understand how StaffGlimpse isolates data per company tenant, what a tenant ID represents, and how your company account maps to the API."
 ---
@@ -41,16 +41,21 @@ x-api-key: <static_shared_key>
 
 The `GET /company` endpoint returns your full tenant profile. The table below describes the key fields you will find in the `result` object:
 
-| Field          | Type     | Description                                                                 |
-| -------------- | -------- | --------------------------------------------------------------------------- |
-| `CompanyName`  | `string` | The registered legal name of your company.                                  |
-| `Email`        | `string` | The primary contact email address for your account.                         |
-| `AccountURL`   | `string` | Your unique tenant slug, used to identify your company in the dashboard.    |
-| `Plan`         | `string` | The subscription plan your company is currently on.                         |
-| `Status`       | `string` | Account status — typically `active`, `inactive`, or `suspended`.            |
-| `BillCycle`    | `string` | Your billing frequency, e.g., `monthly` or `annually`.                      |
-| `ExpiringDate` | `string` | ISO 8601 date on which your current plan period expires.                    |
-| `DomainStatus` | `string` | Indicates whether your custom domain (if configured) has been verified.     |
+| Field            | Type     | Description                                                                 |
+| ---------------- | -------- | --------------------------------------------------------------------------- |
+| `CompanyName`    | `string` | The registered legal name of your company.                                  |
+| `Email`          | `string` | The primary contact email address for your account.                         |
+| `AccountURL`     | `string` | Your unique tenant slug, used to identify your company in the dashboard.    |
+| `Plan`           | `string` | The subscription plan your company is currently on.                         |
+| `Status`         | `string` | Account status — typically `Active`, `Inactive`, or `Suspended`.            |
+| `BillCycle`      | `string` | Your billing frequency, e.g., `Monthly` or `Annually`.                      |
+| `ExpiringDate`   | `string` | ISO 8601 datetime on which your current plan period expires.                |
+| `DomainStatus`   | `string` | Indicates whether your custom domain (if configured) has been verified.     |
+| `CreatedDate`    | `string` | ISO 8601 datetime when your company account was first registered.           |
+| `Image`          | `string` | URL of your company logo image, if one has been uploaded.                   |
+| `PaymentMethod`  | `string` | The payment method on file for your subscription, e.g., `Credit Card`.     |
+| `InvoiceID`      | `string` | The identifier of the most recent invoice for your account.                 |
+| `Amount`         | `string` | The billing amount associated with your current plan period.                |
 
 ## Subscription Plans
 
@@ -59,5 +64,5 @@ Your current subscription plan and billing cycle are reflected in the `Plan` and
 <Tip>
   Use `GET /company` at startup to verify your tenant configuration and check
   your account status before making other API calls. If `Status` is not
-  `active`, downstream calls may fail or return limited data.
+  `Active`, downstream calls may fail or return limited data.
 </Tip>

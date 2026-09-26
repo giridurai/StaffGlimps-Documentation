@@ -1,7 +1,7 @@
 ---
-title: "Company API — Profile and Registration Endpoints"
+title: "StaffGlimpse Company API — Profile and Registration"
 sidebarTitle: "Company"
-description: "REST endpoints for registering a company tenant and retrieving or updating the company profile in StaffGlimpse."
+description: "REST endpoints for registering a new company tenant and retrieving or updating the company profile, billing plan, and domain status in StaffGlimpse."
 ---
 
 The Company API manages your top-level organization account. Use it to register a new company tenant, retrieve the company profile, and access billing and plan information. Every call targets the Company base URL and requires both authentication headers described below.
@@ -98,10 +98,13 @@ data = response.json()
     "AccountURL": "acme",
     "Plan": "Enterprise",
     "CreatedDate": "2024-01-15T00:00:00Z",
+    "Image": "https://cdn.example.com/logos/acme.png",
     "Status": "Active",
     "BillCycle": "Monthly",
+    "PaymentMethod": "Credit Card",
     "ExpiringDate": "2025-01-15T00:00:00Z",
-    "DomainStatus": "Verified"
+    "DomainStatus": "Verified",
+    "InvoiceID": "INV-001"
   }
 }
 ```
@@ -138,6 +141,18 @@ data = response.json()
 
 <ResponseField name="DomainStatus" type="string">
   Verification state of the company's custom domain. One of `Pending`, `Verified`, or `Failed`.
+</ResponseField>
+
+<ResponseField name="Image" type="string">
+  URL of the company's logo image, if one has been uploaded. Returns an empty string when no logo is set.
+</ResponseField>
+
+<ResponseField name="PaymentMethod" type="string">
+  Payment method on file for billing (e.g. `Credit Card`, `Bank Transfer`).
+</ResponseField>
+
+<ResponseField name="InvoiceID" type="string">
+  Identifier of the most recent invoice generated for this account.
 </ResponseField>
 
 ---
@@ -236,11 +251,8 @@ data = response.json()
   "responseCode": 200,
   "response": "Success",
   "result": {
-    "CompanyName": "Acme Corp",
-    "Email": "admin@acme.com",
-    "AccountURL": "acme",
-    "Plan": "Starter",
-    "Status": "Active"
+    "companyId": "cmp_abc123",
+    "message": "Registration successful"
   }
 }
 ```

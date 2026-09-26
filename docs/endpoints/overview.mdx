@@ -1,7 +1,7 @@
 ---
-title: "StaffGlimpse API Base URLs and Service Endpoints"
+title: "StaffGlimpse REST API Base URLs and Endpoint Reference"
 sidebarTitle: "Base URLs"
-description: "Complete reference of production and development base URLs for all StaffGlimpse service domains including Company, User, Attendance, Leave, and Documents."
+description: "Complete reference of all StaffGlimpse production service base URLs for Company, User, Metadata, Messages, Attendance, Leave, and Documents APIs."
 ---
 
 StaffGlimpse routes different API domains through separate AWS API Gateway endpoints. Each service has its own base URL — use the correct base URL when constructing requests for each domain. Mixing up base URLs across services is the most common source of `404` errors when first integrating with the platform.
@@ -43,12 +43,12 @@ Use the tables below to locate the right path for each operation. Combine each p
 |---|---|---|
 | `GET` | `/company` | Retrieve the authenticated user's company profile |
 | `POST` | `/company/register` | Register a new company |
-| `GET` | `/company/department` | List all departments |
-| `POST` | `/company/department` | Create a new department |
-| `PUT` | `/company/department` | Update an existing department |
-| `GET` | `/company/role` | List all roles |
-| `POST` | `/company/role` | Create a new role |
-| `PUT` | `/company/role` | Update an existing role |
+| `GET` | `/company/department/get` | List all departments |
+| `POST` | `/company/department/create` | Create a new department |
+| `PUT` | `/company/department/update` | Update an existing department |
+| `GET` | `/company/role/get` | List all roles |
+| `POST` | `/company/role/create` | Create a new role |
+| `PUT` | `/company/role/update` | Update an existing role |
 
 </Accordion>
 
@@ -107,7 +107,7 @@ Use the tables below to locate the right path for each operation. Combine each p
 | `POST` | `/document` | Document API |
 | `GET` | `/document/get` | Document API |
 | `PUT` | `/document/update` | Document API |
-| `GET` | `/{documentId}` | Document Cloud (CloudFront) |
+| `GET` | `/document/{documentId}` | Document Cloud (CloudFront) |
 
 </Accordion>
 

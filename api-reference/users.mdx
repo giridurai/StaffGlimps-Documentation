@@ -1,7 +1,7 @@
 ---
-title: "Users API — Employee Profile Management"
+title: "Users API — HR Employee Profile Management Reference"
 sidebarTitle: "Users"
-description: "REST endpoints for creating, listing, updating, locking, unlocking, and deleting employee user profiles in StaffGlimpse."
+description: "REST endpoints for creating, listing, updating, locking, unlocking, and deleting employee user profiles in StaffGlimpse HR platform."
 ---
 
 The Users API (served from the Profile service) manages the full lifecycle of employee accounts — from onboarding to offboarding. Every user belongs to your company tenant and can be assigned an `ADMIN` or `USER` role. Use these endpoints to provision new employees, search and filter your workforce, update profile details, and control account access through locking, unlocking, and soft-deletion.
@@ -53,19 +53,21 @@ const data = await response.json();
 
 ```json
 {
-  "message": "Profile fetched successfully",
+  "message": "Success",
   "responseCode": 200,
   "response": "Success",
   "result": {
     "firstName": "Jane",
     "lastName": "Smith",
     "emailId": "jane.smith@acme.com",
-    "phoneNumber": "5550001234",
+    "phoneNumber": "+15550001234",
     "userRole": "ADMIN",
     "isLocked": false,
     "isActive": true,
-    "companyId": "comp_01HZ",
-    "managerName": "John Doe"
+    "isDeleted": false,
+    "companyId": "cmp_abc123",
+    "managerName": "John Doe",
+    "leadName": "Engineering"
   }
 }
 ```
@@ -91,11 +93,17 @@ const data = await response.json();
 <ResponseField name="result.isActive" type="boolean">
   `true` if the account is active within the tenant.
 </ResponseField>
+<ResponseField name="result.isDeleted" type="boolean">
+  `true` if the account has been soft-deleted.
+</ResponseField>
 <ResponseField name="result.companyId" type="string">
   The tenant company identifier this user belongs to.
 </ResponseField>
 <ResponseField name="result.managerName" type="string">
   The full name of the user's assigned manager.
+</ResponseField>
+<ResponseField name="result.leadName" type="string">
+  The name of the team or department lead associated with this user.
 </ResponseField>
 
 ---
@@ -163,35 +171,41 @@ const data = await response.json();
 
 ```json
 {
-  "message": "Profiles fetched successfully",
+  "message": "Success",
   "responseCode": 200,
   "response": "Success",
-  "result": [
-    {
-      "customerId": 1042,
-      "firstName": "Jane",
-      "lastName": "Smith",
-      "emailId": "jane.smith@acme.com",
-      "phoneNumber": "5550001234",
-      "userRole": "ADMIN",
-      "isLocked": false,
-      "isActive": true,
-      "companyId": "comp_01HZ",
-      "managerName": "John Doe"
-    },
-    {
-      "customerId": 1043,
-      "firstName": "Carlos",
-      "lastName": "Rivera",
-      "emailId": "carlos.rivera@acme.com",
-      "phoneNumber": "5550005678",
-      "userRole": "USER",
-      "isLocked": false,
-      "isActive": true,
-      "companyId": "comp_01HZ",
-      "managerName": "Jane Smith"
-    }
-  ]
+  "result": {
+    "users": [
+      {
+        "firstName": "Jane",
+        "lastName": "Smith",
+        "emailId": "jane.smith@acme.com",
+        "phoneNumber": "+15550001234",
+        "userRole": "ADMIN",
+        "isLocked": false,
+        "isActive": true,
+        "isDeleted": false,
+        "companyId": "cmp_abc123",
+        "managerName": "John Doe",
+        "leadName": "Engineering",
+        "createdDate": "2024-02-10T00:00:00Z"
+      },
+      {
+        "firstName": "Carlos",
+        "lastName": "Rivera",
+        "emailId": "carlos.rivera@acme.com",
+        "phoneNumber": "+15550005678",
+        "userRole": "USER",
+        "isLocked": false,
+        "isActive": true,
+        "isDeleted": false,
+        "companyId": "cmp_abc123",
+        "managerName": "Jane Smith",
+        "leadName": "HR Department",
+        "createdDate": "2024-03-05T00:00:00Z"
+      }
+    ]
+  }
 }
 ```
 
@@ -230,8 +244,8 @@ POST https://ak2cemih27.execute-api.ap-south-1.amazonaws.com/live/profile/create
 <ParamField body="userRole" type="string" required>
   Platform role for this user. Must be either `ADMIN` or `USER`.
 </ParamField>
-<ParamField body="address" type="object">
-  Optional address information for the employee.
+<ParamField body="address" type="object" required>
+  The employee's address information.
   <Expandable title="address fields">
     <ParamField body="isPhysicalAndMailingAddressSame" type="boolean">
       Set to `true` to use the physical address as the mailing address.
@@ -352,7 +366,7 @@ const data = await response.json();
   "responseCode": 200,
   "response": "Success",
   "result": {
-    "message": "User profile created",
+    "message": "User created",
     "customerId": 1043
   }
 }
@@ -439,13 +453,16 @@ const data = await response.json();
 
 ```json
 {
-  "message": "Profile updated successfully",
+  "message": "User updated successfully",
   "responseCode": 200,
   "response": "Success",
   "result": {
+    "message": "User updated",
     "customerId": 1043,
-    "firstName": "Carlo",
-    "userRole": "ADMIN"
+    "updatedFields": {
+      "firstName": "Carlo",
+      "userRole": "ADMIN"
+    }
   }
 }
 ```
@@ -510,13 +527,12 @@ const data = await response.json();
 
 ```json
 {
-  "message": "User account locked successfully",
+  "message": "User locked successfully",
   "responseCode": 200,
   "response": "Success",
   "result": {
-    "customerId": 1043,
-    "isLocked": true,
-    "lockReason": "Account suspended pending HR investigation — ticket #HR-2024-089"
+    "message": "User locked",
+    "customerId": 1043
   }
 }
 ```
@@ -578,12 +594,12 @@ const data = await response.json();
 
 ```json
 {
-  "message": "User account unlocked successfully",
+  "message": "User unlocked successfully",
   "responseCode": 200,
   "response": "Success",
   "result": {
-    "customerId": 1043,
-    "isLocked": false
+    "message": "User unlocked",
+    "customerId": 1043
   }
 }
 ```
@@ -648,13 +664,12 @@ const data = await response.json();
 
 ```json
 {
-  "message": "User profile deleted successfully",
+  "message": "User deleted successfully",
   "responseCode": 200,
   "response": "Success",
   "result": {
-    "customerId": 1043,
-    "isDeleted": true,
-    "deleteReason": "Employee resigned on 2024-11-30. Final payroll processed."
+    "message": "User deleted",
+    "customerId": 1043
   }
 }
 ```

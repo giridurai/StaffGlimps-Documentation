@@ -1,5 +1,5 @@
 ---
-title: "Messages API — In-App Notifications and Messaging"
+title: "Messages API — Inbox, Alerts, and Notification Counts"
 sidebarTitle: "Messages"
 description: "REST endpoints for retrieving, creating, and updating in-app messages and notifications, including unread counts for badge indicators."
 ---
@@ -20,7 +20,7 @@ Retrieve messages for the authenticated user. Filter by category to separate inb
 
 **Endpoint**
 
-```
+```text
 GET https://7gt46stdyc.execute-api.ap-south-1.amazonaws.com/live/message/get
 ```
 
@@ -84,48 +84,63 @@ const data = await response.json();
   "message": "Messages fetched successfully",
   "responseCode": 200,
   "response": "Success",
-  "result": [
-    {
-      "msgId": "msg_01PQRSTU",
-      "msgTopic": "Leave Request",
-      "msgSubject": "Your leave request has been approved",
-      "msgBody": "Your annual leave from 2024-12-23 to 2024-12-27 has been approved by your manager.",
-      "msgCategory": "alert",
-      "isRead": false,
-      "createdDate": "2024-12-10T14:22:00.000Z"
-    },
-    {
-      "msgId": "msg_02VWXYZA",
-      "msgTopic": "Payroll",
-      "msgSubject": "November payslip is available",
-      "msgBody": "Your payslip for November 2024 has been generated and is available in the Documents section.",
-      "msgCategory": "alert",
-      "isRead": true,
-      "createdDate": "2024-12-01T08:00:00.000Z"
-    }
-  ]
+  "result": {
+    "messages": [
+      {
+        "msgId": "msg_01PQRSTU",
+        "msgTopic": "Leave Request",
+        "msgSubject": "Your leave request has been approved",
+        "msgBody": "Your annual leave from 2024-12-23 to 2024-12-27 has been approved by your manager.",
+        "msgCategory": "alert",
+        "isRead": false,
+        "isActive": true,
+        "isDeleted": false,
+        "createdDate": "2024-12-10T14:22:00.000Z"
+      },
+      {
+        "msgId": "msg_02VWXYZA",
+        "msgTopic": "Payroll",
+        "msgSubject": "November payslip is available",
+        "msgBody": "Your payslip for November 2024 has been generated and is available in the Documents section.",
+        "msgCategory": "alert",
+        "isRead": true,
+        "isActive": true,
+        "isDeleted": false,
+        "createdDate": "2024-12-01T08:00:00.000Z"
+      }
+    ]
+  }
 }
 ```
 
-<ResponseField name="result[].msgId" type="string">
+<ResponseField name="result.messages" type="array">
+  Array of message objects matching the applied filters.
+</ResponseField>
+<ResponseField name="result.messages[].msgId" type="string">
   Unique identifier for this message. Use this value when calling `PUT /message/update`.
 </ResponseField>
-<ResponseField name="result[].msgTopic" type="string">
+<ResponseField name="result.messages[].msgTopic" type="string">
   A short topic label categorizing the message (e.g., `"Payroll"`, `"Leave Request"`).
 </ResponseField>
-<ResponseField name="result[].msgSubject" type="string">
+<ResponseField name="result.messages[].msgSubject" type="string">
   The message subject line, displayed as the headline in inbox views.
 </ResponseField>
-<ResponseField name="result[].msgBody" type="string">
+<ResponseField name="result.messages[].msgBody" type="string">
   The full message body text.
 </ResponseField>
-<ResponseField name="result[].msgCategory" type="string">
+<ResponseField name="result.messages[].msgCategory" type="string">
   The category this message belongs to — `inbox`, `sent`, or `alert`.
 </ResponseField>
-<ResponseField name="result[].isRead" type="boolean">
+<ResponseField name="result.messages[].isRead" type="boolean">
   `true` if the recipient has marked this message as read.
 </ResponseField>
-<ResponseField name="result[].createdDate" type="string">
+<ResponseField name="result.messages[].isActive" type="boolean">
+  `true` if the message is active. Inactive messages are hidden from inbox views.
+</ResponseField>
+<ResponseField name="result.messages[].isDeleted" type="boolean">
+  `true` if the message has been soft-deleted.
+</ResponseField>
+<ResponseField name="result.messages[].createdDate" type="string">
   ISO 8601 timestamp of when the message was created.
 </ResponseField>
 
@@ -137,7 +152,7 @@ Retrieve the total and unread message counts for the authenticated user. Use thi
 
 **Endpoint**
 
-```
+```text
 GET https://7gt46stdyc.execute-api.ap-south-1.amazonaws.com/live/message/get/count
 ```
 
@@ -201,7 +216,7 @@ Send a new message or system notification to one or more users. Specify the targ
 
 **Endpoint**
 
-```
+```text
 POST https://7gt46stdyc.execute-api.ap-south-1.amazonaws.com/live/message/create
 ```
 
@@ -272,16 +287,12 @@ const data = await response.json();
 
 ```json
 {
-  "message": "Message sent successfully",
+  "message": "Message created successfully",
   "responseCode": 200,
   "response": "Success",
   "result": {
-    "msgId": "msg_03BCDEFG",
-    "msgTopic": "Policy Update",
-    "msgSubject": "Updated Remote Work Policy — Effective January 2025",
-    "msgCategory": "inbox",
-    "targetUserIds": ["usr_01ABC", "usr_02DEF", "usr_03GHI"],
-    "createdDate": "2024-12-10T15:45:00.000Z"
+    "messageId": "msg_03BCDEFG",
+    "message": "Created"
   }
 }
 ```
@@ -298,7 +309,7 @@ Update a message's read status or active state. The most common use case is mark
 
 **Endpoint**
 
-```
+```text
 PUT https://7gt46stdyc.execute-api.ap-south-1.amazonaws.com/live/message/update
 ```
 
@@ -370,8 +381,7 @@ const data = await response.json();
   "response": "Success",
   "result": {
     "messageId": "msg_01PQRSTU",
-    "isRead": true,
-    "isActive": true
+    "message": "Updated"
   }
 }
 ```

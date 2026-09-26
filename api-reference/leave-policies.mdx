@@ -1,7 +1,7 @@
 ---
 title: "Leave Policies API — Configure Leave Rules and Holidays"
 sidebarTitle: "Leave Policies"
-description: "REST endpoints for creating and updating company leave policies per location, and fetching national and regional public holidays."
+description: "REST endpoints for creating and updating company leave policies per location, and fetching national and regional public holiday calendars."
 ---
 
 The Leave Policies API (part of the Company service) lets company admins define leave types, annual allowances, carry-forward rules, and holiday calendars per geographic location. Policies are scoped to a location object so that companies operating across multiple regions or countries can apply distinct rules for each office.
@@ -29,7 +29,7 @@ Use this endpoint when onboarding a new office location or configuring leave for
 
 ### Request Body
 
-<ParamField body="metadata" type="string" required>
+<ParamField body="metadata" type="string">
   Must be set to `"leavePolicy"`. This value identifies the resource type being created within the Company service.
 </ParamField>
 
@@ -39,13 +39,13 @@ Use this endpoint when onboarding a new office location or configuring leave for
     <ParamField body="country" type="string" required>
       Country name or ISO 3166-1 alpha-2 code (e.g., `"IN"` or `"India"`).
     </ParamField>
-    <ParamField body="province" type="string" required>
+    <ParamField body="province" type="string">
       State or province name (e.g., `"Delhi"`).
     </ParamField>
-    <ParamField body="city" type="string" required>
+    <ParamField body="city" type="string">
       City name (e.g., `"New Delhi"`).
     </ParamField>
-    <ParamField body="locationName" type="string" required>
+    <ParamField body="locationName" type="string">
       A human-readable label for the office or location (e.g., `"HQ - New Delhi"`).
     </ParamField>
   </Expandable>
@@ -57,13 +57,13 @@ Use this endpoint when onboarding a new office location or configuring leave for
     <ParamField body="type" type="string" required>
       Leave type name (e.g., `"Annual"`, `"Sick"`, `"Casual"`, `"Maternity"`).
     </ParamField>
-    <ParamField body="perAnnum" type="number" required>
+    <ParamField body="perAnnum" type="integer" required>
       Number of leave days allocated per year for this leave type.
     </ParamField>
     <ParamField body="frequency" type="string" required>
       How the allowance is credited — e.g., `"yearly"`, `"monthly"`, or `"quarterly"`.
     </ParamField>
-    <ParamField body="carryForward" type="number" required>
+    <ParamField body="carryForward" type="integer" required>
       Maximum number of unused days that can be carried into the next year. Set to `0` to disable carry-forward.
     </ParamField>
     <ParamField body="rules" type="string" required>
@@ -75,8 +75,8 @@ Use this endpoint when onboarding a new office location or configuring leave for
   </Expandable>
 </ParamField>
 
-<ParamField body="description" type="string">
-  Optional free-text description of the overall leave policy configuration.
+<ParamField body="description" type="string" required>
+  A free-text description of the overall leave policy configuration.
 </ParamField>
 
 <Tip>
@@ -417,11 +417,11 @@ curl "https://r00buwtnh1.execute-api.ap-south-1.amazonaws.com/live/company/leave
   State or province name (e.g., `"Delhi"`).
 </ParamField>
 
-<ParamField query="city" type="string">
+<ParamField query="city" type="string" required>
   City name for city-specific holidays (e.g., `"New Delhi"`).
 </ParamField>
 
-<ParamField query="locationName" type="string">
+<ParamField query="locationName" type="string" required>
   The office location name as configured in your leave policy (e.g., `"HQ - New Delhi"`).
 </ParamField>
 

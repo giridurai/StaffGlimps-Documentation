@@ -1,7 +1,7 @@
 ---
-title: "Departments API — Create and Manage Org Structure"
+title: "Departments API — Create and Manage Your Org Structure"
 sidebarTitle: "Departments"
-description: "REST endpoints for listing, creating, and updating departments within your StaffGlimpse company tenant."
+description: "REST endpoints for listing, creating, and updating departments within your StaffGlimpse company tenant, including headcount and activation state."
 ---
 
 Departments organize employees within your company. Use the Departments API to set up your organizational hierarchy and keep headcount information current. All department resources belong to your company tenant and are scoped automatically using your authentication token.
@@ -97,30 +97,36 @@ data = response.json()
   "message": "Success",
   "responseCode": 200,
   "response": "Success",
-  "result": [
-    {
-      "departmentId": "dept_01HXYZ",
-      "departmentName": "Engineering",
-      "description": "Product and platform engineering team",
-      "noOfEmployees": 42,
-      "isActive": true,
-      "status": "Active"
-    },
-    {
-      "departmentId": "dept_02HXYZ",
-      "departmentName": "Enterprise Sales",
-      "description": "Outbound and account management",
-      "noOfEmployees": 18,
-      "isActive": true,
-      "status": "Active"
-    }
-  ]
+  "result": {
+    "departments": [
+      {
+        "departmentId": "dep_001",
+        "departmentName": "Engineering",
+        "description": "Product and platform engineering team",
+        "noOfEmployees": 42,
+        "isActive": true,
+        "isDeleted": false,
+        "sNo": 1,
+        "status": "Active"
+      },
+      {
+        "departmentId": "dep_002",
+        "departmentName": "Enterprise Sales",
+        "description": "Outbound and account management",
+        "noOfEmployees": 18,
+        "isActive": true,
+        "isDeleted": false,
+        "sNo": 2,
+        "status": "Active"
+      }
+    ]
+  }
 }
 ```
 
 ### Response Fields
 
-<ResponseField name="result" type="array">
+<ResponseField name="result.departments" type="array">
   Array of department objects matching the filter criteria.
 
   <Expandable title="Department object fields">
@@ -142,6 +148,14 @@ data = response.json()
 
     <ResponseField name="isActive" type="boolean">
       Whether the department is currently active. Inactive departments are hidden from employee-facing interfaces.
+    </ResponseField>
+
+    <ResponseField name="isDeleted" type="boolean">
+      Whether the department has been soft-deleted. Soft-deleted departments do not appear in normal listings.
+    </ResponseField>
+
+    <ResponseField name="sNo" type="integer">
+      Sequential display order number for the department within the company tenant.
     </ResponseField>
 
     <ResponseField name="status" type="string">
@@ -281,7 +295,7 @@ PUT /company/department/update
   The unique identifier of the department to update. Retrieve this from `GET /company/department/get`.
 </ParamField>
 
-<ParamField body="departmentName" type="string">
+<ParamField body="departmentName" type="string" required>
   New display name for the department.
 </ParamField>
 
@@ -293,12 +307,12 @@ PUT /company/department/update
   Updated headcount figure for the department.
 </ParamField>
 
-<ParamField body="isActive" type="boolean">
+<ParamField body="isActive" type="boolean" required>
   Set to `false` to deactivate the department and hide it from employee-facing interfaces without deleting it.
 </ParamField>
 
-<ParamField body="isDeleted" type="boolean">
-  Set to `true` to soft-delete the department. Soft-deleted departments cannot be restored through the API.
+<ParamField body="isDeleted" type="boolean" required>
+  Set to `true` to soft-delete the department. Set to `false` to keep it active. Soft-deleted departments cannot be restored through the API.
 </ParamField>
 
 ### Request Example

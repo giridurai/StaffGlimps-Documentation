@@ -1,10 +1,10 @@
 ---
-title: "Upload and Manage Employee Documents"
+title: "StaffGlimpse Documents API: Upload, Manage, and Download"
 sidebarTitle: "Documents"
 description: "Upload files to cloud storage, retrieve document metadata, update categories, and securely download employee documents through StaffGlimpse."
 ---
 
-StaffGlimpse's Document API lets you store employee-related files — contracts, payslips, certificates, identity documents — in secure cloud storage (AWS S3) served through CloudFront. You can upload, categorize, list, update, and download documents via the API, keeping all employee records accessible in one place while maintaining tenant-level isolation.
+StaffGlimpse's Document API lets you store employee-related files — contracts, payslips, certificates, identity documents — in secure cloud storage served through a global CDN. You can upload, categorize, list, update, and download documents via the API, keeping all employee records accessible in one place while maintaining tenant-level isolation.
 
 <Note>
   Documents uploaded via the API are tied to the authenticated user's tenant. Only users within your company can access them.
@@ -12,7 +12,7 @@ StaffGlimpse's Document API lets you store employee-related files — contracts,
 
 ## Upload a Document
 
-To store a new document, send a `POST /document` request with a `multipart/form-data` body containing the file and its category. The API writes the file to S3 and returns a `documentId` you use for all subsequent operations.
+To store a new document, send a `POST /document` request with a `multipart/form-data` body containing the file and its category. The API stores the file in secure cloud storage and returns a `documentId` you use for all subsequent operations.
 
 <Steps>
   <Step title="Prepare your file and category">
@@ -98,10 +98,10 @@ curl -X PUT https://6e52pmjmy4.execute-api.ap-south-1.amazonaws.com/live/documen
 
 ## Download a Document
 
-File downloads are served from the Document Cloud (CloudFront), not the Document API Gateway. Use `GET /{documentId}` on the CloudFront base URL. This endpoint authenticates via an `x-token` header containing your Cognito ID token — **not** the standard `Authorization` header.
+File downloads are served from the Document Cloud (CloudFront), not the Document API Gateway. Use `GET /document/{documentId}` on the CloudFront base URL, replacing `{documentId}` with the ID returned at upload time. This endpoint authenticates via an `x-token` header containing your Cognito ID token — **not** the standard `Authorization` header.
 
 ```bash
-curl https://d2ikeisatr21la.cloudfront.net/doc_001 \
+curl https://d2ikeisatr21la.cloudfront.net/document/doc_001 \
   -H "x-token: <YOUR_COGNITO_ID_TOKEN>" \
   --output contract.pdf
 ```
@@ -137,7 +137,7 @@ The following fields appear in the document record returned by `GET /document/ge
 </ResponseField>
 
 <ResponseField name="isEncrypted" type="boolean">
-  Indicates whether the file stored in S3 is encrypted at the application level (beyond default S3 server-side encryption).
+  Indicates whether additional application-level encryption has been applied to this document beyond standard storage encryption.
 </ResponseField>
 
 <ResponseField name="isShared" type="boolean">
@@ -157,5 +157,5 @@ The following fields appear in the document record returned by `GET /document/ge
 </ResponseField>
 
 <ResponseField name="s3Key" type="string">
-  Internal storage path of the file within the S3 bucket. This value is managed by StaffGlimpse and is provided for reference only — use the CloudFront download endpoint to retrieve the file.
+  Storage path of the file in cloud storage. This value is managed by StaffGlimpse and provided for reference only — use the CloudFront download endpoint to retrieve the actual file.
 </ResponseField>

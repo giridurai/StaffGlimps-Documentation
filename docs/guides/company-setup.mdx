@@ -1,7 +1,7 @@
 ---
-title: "Set Up Your Company in StaffGlimpse"
+title: "StaffGlimpse Company: Set Up Departments and Roles"
 sidebarTitle: "Company Setup"
-description: "Register your company, configure departments, and create custom roles to establish your organizational structure in StaffGlimpse."
+description: "Register your company, configure departments, and define custom roles with permissions to build your organizational structure in StaffGlimpse."
 ---
 
 Before your employees can use StaffGlimpse, you need to register your company and build out your organizational structure — departments and roles. This guide walks you through each step in order, from initial registration to a fully configured role hierarchy ready for employee onboarding.
@@ -221,6 +221,8 @@ curl -X POST https://r00buwtnh1.execute-api.ap-south-1.amazonaws.com/live/compan
 
 After creating a role, configure exactly which modules it can access using `PUT /company/role/permissions/update`. Each module in the permissions matrix accepts a granular set of boolean flags.
 
+The `permissions` field is an **array** of per-module permission objects. Each object identifies the module by name and carries individual boolean flags: `read`, `write`, `create`, `delete`, `import`, and `export`. Include one object per module you want to configure.
+
 ```bash
 curl -X PUT https://r00buwtnh1.execute-api.ap-south-1.amazonaws.com/live/company/role/permissions/update \
   -H "Content-Type: application/json" \
@@ -228,27 +230,35 @@ curl -X PUT https://r00buwtnh1.execute-api.ap-south-1.amazonaws.com/live/company
   -H "Authorization: Bearer <YOUR_TOKEN>" \
   -d '{
     "roleId": "role_001",
-    "permissions": {
-      "attendance": {
-        "view": true,
+    "permissions": [
+      {
+        "module": "attendance",
+        "read": true,
+        "write": true,
         "create": true,
-        "edit": true,
-        "delete": false
-      },
-      "leave": {
-        "view": true,
-        "create": true,
-        "edit": true,
         "delete": false,
-        "approve": true
+        "import": false,
+        "export": true
       },
-      "documents": {
-        "view": true,
+      {
+        "module": "leave",
+        "read": true,
+        "write": true,
+        "create": true,
+        "delete": false,
+        "import": false,
+        "export": false
+      },
+      {
+        "module": "documents",
+        "read": true,
+        "write": false,
         "create": false,
-        "edit": false,
-        "delete": false
+        "delete": false,
+        "import": false,
+        "export": false
       }
-    }
+    ]
   }'
 ```
 
@@ -257,11 +267,11 @@ curl -X PUT https://r00buwtnh1.execute-api.ap-south-1.amazonaws.com/live/company
 </Note>
 
 <Accordion title="Recommended permissions by role type">
-  **Admin / HR Manager** — enable `view`, `create`, `edit`, `delete`, and `approve` across all modules.
+  **Admin / HR Manager** — enable `read`, `write`, `create`, `delete`, `import`, and `export` across all modules.
 
-  **Department Manager** — enable `view`, `create`, `edit`, and `approve` for attendance and leave modules; restrict `delete` and payroll modules.
+  **Department Manager** — enable `read`, `write`, and `create` for attendance and leave modules; set `delete`, `import`, and `export` to `false` for those modules; restrict all flags on payroll.
 
-  **Standard Employee** — enable `view` and `create` for attendance and leave; disable all `edit`, `delete`, and `approve` flags.
+  **Standard Employee** — enable `read` and `create` for attendance and leave; set all other flags (`write`, `delete`, `import`, `export`) to `false`.
 </Accordion>
 
 ---

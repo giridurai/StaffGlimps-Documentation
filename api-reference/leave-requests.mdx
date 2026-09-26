@@ -1,5 +1,5 @@
 ---
-title: "Leave Requests API — Submit and Manage Leave"
+title: "Leave Requests API — Submit and Manage Employee Leave"
 sidebarTitle: "Leave Requests"
 description: "REST endpoints for submitting employee leave requests, reviewing leave ledgers, and managing approvals as a manager in StaffGlimpse."
 ---
@@ -337,12 +337,12 @@ The `type` query parameter controls the permitted actions:
   The unique identifier of the leave request to update.
 </ParamField>
 
-<ParamField body="userId" type="string" required>
+<ParamField body="userId" type="string">
   The user ID of the employee whose leave request is being updated.
 </ParamField>
 
 <ParamField body="action" type="string" required>
-  The action to perform. Accepted values: `"approve"`, `"reject"`, or `"cancel"`.
+  The action to perform. Accepted values: `"approve"`, `"reject"`, `"cancel"`, `"resubmit"`, or `"delete"`.
 </ParamField>
 
 <ParamField body="comments" type="string">

@@ -1,5 +1,5 @@
 ---
-title: "Roles & Permissions API — Manage Access Control"
+title: "Roles & Permissions API — Access Control Management"
 sidebarTitle: "Roles"
 description: "REST endpoints for creating, updating, and deleting roles, and managing the per-module permissions matrix for each role in StaffGlimpse."
 ---
@@ -85,45 +85,65 @@ data = response.json()
   "responseCode": 200,
   "response": "Success",
   "result": {
-    "roleId": "role_01HXYZ",
-    "roleName": "Engineering Manager",
-    "description": "Manages the engineering department and its sub-teams",
-    "departmentId": "dept_01HXYZ",
-    "departmentName": "Engineering",
-    "equivalentRolePosition": 2,
-    "isActive": true
+    "roles": [
+      {
+        "roleId": "role_01HXYZ",
+        "roleName": "Engineering Manager",
+        "description": "Manages the engineering department and its sub-teams",
+        "departmentId": "dep_001",
+        "departmentName": "Engineering",
+        "equivalentRolePosition": "Engineering Manager",
+        "isActive": true,
+        "isDeleted": false,
+        "sNo": 1
+      }
+    ]
   }
 }
 ```
 
 ### Response Fields
 
-<ResponseField name="roleId" type="string">
-  Unique identifier for the role.
-</ResponseField>
+<ResponseField name="result.roles" type="array">
+  Array of role objects matching the query.
 
-<ResponseField name="roleName" type="string">
-  Display name of the role as shown in the platform UI and employee profiles.
-</ResponseField>
+  <Expandable title="Role object fields">
+    <ResponseField name="roleId" type="string">
+      Unique identifier for the role.
+    </ResponseField>
 
-<ResponseField name="description" type="string">
-  Optional text description of the role's responsibilities.
-</ResponseField>
+    <ResponseField name="roleName" type="string">
+      Display name of the role as shown in the platform UI and employee profiles.
+    </ResponseField>
 
-<ResponseField name="departmentId" type="string">
-  Identifier of the department this role belongs to.
-</ResponseField>
+    <ResponseField name="description" type="string">
+      Optional text description of the role's responsibilities.
+    </ResponseField>
 
-<ResponseField name="departmentName" type="string">
-  Display name of the associated department, included for convenience.
-</ResponseField>
+    <ResponseField name="departmentId" type="string">
+      Identifier of the department this role belongs to.
+    </ResponseField>
 
-<ResponseField name="equivalentRolePosition" type="integer">
-  Numeric hierarchy level for this role within its department. Lower numbers indicate higher seniority (e.g. `1` = head of department).
-</ResponseField>
+    <ResponseField name="departmentName" type="string">
+      Display name of the associated department, included for convenience.
+    </ResponseField>
 
-<ResponseField name="isActive" type="boolean">
-  Whether the role is currently active. Inactive roles cannot be assigned to new users.
+    <ResponseField name="equivalentRolePosition" type="string">
+      Job title or hierarchy label describing this role's position within its department (e.g. `"Engineering Manager"`, `"IT Director"`).
+    </ResponseField>
+
+    <ResponseField name="isActive" type="boolean">
+      Whether the role is currently active. Inactive roles cannot be assigned to new users.
+    </ResponseField>
+
+    <ResponseField name="isDeleted" type="boolean">
+      Whether this role has been soft-deleted.
+    </ResponseField>
+
+    <ResponseField name="sNo" type="integer">
+      Sequential display order number for the role within the company tenant.
+    </ResponseField>
+  </Expandable>
 </ResponseField>
 
 ---
@@ -154,8 +174,8 @@ POST /company/role/create
   Display name of the department. Providing this alongside `departmentId` avoids an extra lookup when rendering UI.
 </ParamField>
 
-<ParamField body="equivalentRolePosition" type="integer">
-  Numeric seniority level within the department. Use `1` for the most senior position. Roles with lower numbers appear first in hierarchy views.
+<ParamField body="equivalentRolePosition" type="string">
+  Job title or hierarchy label describing the role's position within the department (e.g. `"Engineering Manager"`, `"Team Lead"`). Displayed in hierarchy views and employee profile cards.
 </ParamField>
 
 <ParamField body="designationName" type="string">
@@ -176,7 +196,7 @@ curl --request POST \
     "description": "Manages the engineering department and its sub-teams",
     "departmentId": "dept_01HXYZ",
     "departmentName": "Engineering",
-    "equivalentRolePosition": 2,
+    "equivalentRolePosition": "Engineering Manager",
     "designationName": "Engineering Manager"
   }'
 ```
@@ -196,7 +216,7 @@ const response = await fetch(
       description: "Manages the engineering department and its sub-teams",
       departmentId: "dept_01HXYZ",
       departmentName: "Engineering",
-      equivalentRolePosition: 2,
+      equivalentRolePosition: "Engineering Manager",
       designationName: "Engineering Manager",
     }),
   }
@@ -218,7 +238,7 @@ response = requests.post(
         "description": "Manages the engineering department and its sub-teams",
         "departmentId": "dept_01HXYZ",
         "departmentName": "Engineering",
-        "equivalentRolePosition": 2,
+        "equivalentRolePosition": "Engineering Manager",
         "designationName": "Engineering Manager",
     },
 )
@@ -234,12 +254,8 @@ data = response.json()
   "responseCode": 200,
   "response": "Success",
   "result": {
-    "roleId": "role_01HXYZ",
-    "roleName": "Engineering Manager",
-    "departmentId": "dept_01HXYZ",
-    "departmentName": "Engineering",
-    "equivalentRolePosition": 2,
-    "isActive": true
+    "roleId": "role_new456",
+    "message": "Created"
   }
 }
 ```
@@ -272,8 +288,8 @@ PUT /company/role/update
   Reassign this role to a different department by supplying the target department's ID.
 </ParamField>
 
-<ParamField body="equivalentRolePosition" type="integer">
-  Updated hierarchy position within the department.
+<ParamField body="equivalentRolePosition" type="string">
+  Updated hierarchy label for the role within the department (e.g. `"IT Director"`).
 </ParamField>
 
 <ParamField body="isActive" type="boolean">
@@ -296,7 +312,7 @@ curl --request PUT \
   --data '{
     "roleId": "role_01HXYZ",
     "roleName": "Senior Engineering Manager",
-    "equivalentRolePosition": 1,
+    "equivalentRolePosition": "IT Director",
     "isActive": true
   }'
 ```
@@ -314,7 +330,7 @@ const response = await fetch(
     body: JSON.stringify({
       roleId: "role_01HXYZ",
       roleName: "Senior Engineering Manager",
-      equivalentRolePosition: 1,
+      equivalentRolePosition: "IT Director",
       isActive: true,
     }),
   }
@@ -334,7 +350,7 @@ response = requests.put(
     json={
         "roleId": "role_01HXYZ",
         "roleName": "Senior Engineering Manager",
-        "equivalentRolePosition": 1,
+        "equivalentRolePosition": "IT Director",
         "isActive": True,
     },
 )
@@ -410,7 +426,7 @@ data = response.json()
   "response": "Success",
   "result": {
     "roleId": "role_01HXYZ",
-    "isDeleted": true
+    "message": "Deleted"
   }
 }
 ```
@@ -478,8 +494,6 @@ data = response.json()
   "responseCode": 200,
   "response": "Success",
   "result": {
-    "roleId": "role_01HXYZ",
-    "roleName": "Engineering Manager",
     "permissions": [
       {
         "module": "Users",
@@ -517,22 +531,19 @@ data = response.json()
         "import": false,
         "export": false
       }
-    ]
+    ],
+    "roleId": "role_01HXYZ"
   }
 }
 ```
 
 ### Response Fields
 
-<ResponseField name="roleId" type="string">
+<ResponseField name="result.roleId" type="string">
   Identifier of the role these permissions belong to.
 </ResponseField>
 
-<ResponseField name="roleName" type="string">
-  Display name of the role.
-</ResponseField>
-
-<ResponseField name="permissions" type="array">
+<ResponseField name="result.permissions" type="array">
   Array of per-module permission objects.
 
   <Expandable title="Permission object fields">
@@ -765,7 +776,7 @@ data = response.json()
   "response": "Success",
   "result": {
     "roleId": "role_01HXYZ",
-    "updatedModules": ["Users", "Attendance", "Documents"]
+    "message": "Updated"
   }
 }
 ```

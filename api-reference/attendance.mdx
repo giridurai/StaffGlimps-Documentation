@@ -1,5 +1,5 @@
 ---
-title: "Attendance API — Punch In, Out, and Reporting"
+title: "Attendance API — Punch-In, Punch-Out, and Reporting"
 sidebarTitle: "Attendance"
 description: "REST endpoints for recording punch-in and punch-out events, checking attendance status, approving weekly records, and generating monthly reports."
 ---
@@ -277,7 +277,7 @@ Managers call this endpoint after reviewing the pending records returned by `GET
   The Monday of the week to approve, in `YYYY-MM-DD` format (e.g., `"2024-06-10"`).
 </ParamField>
 
-<ParamField body="approvedBy" type="string" required>
+<ParamField body="approvedBy" type="string">
   The user ID of the manager performing the approval.
 </ParamField>
 
@@ -417,7 +417,8 @@ curl -X POST \
     "fromDate": "2024-06-14",
     "toDate": "2024-06-14",
     "days": 1,
-    "reason": "Fever and rest required."
+    "reason": "Fever and rest required.",
+    "documents": []
   }'
 ```
 
@@ -467,7 +468,7 @@ curl https://xes7huej2d.execute-api.ap-south-1.amazonaws.com/live/attendance/lea
   Optional remarks from the manager to accompany the decision.
 </ParamField>
 
-<ParamField body="userId" type="string" required>
+<ParamField body="userId" type="string">
   The user ID of the employee whose leave request is being reviewed.
 </ParamField>
 

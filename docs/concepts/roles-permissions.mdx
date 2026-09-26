@@ -1,5 +1,5 @@
 ---
-title: "Roles & Permissions in StaffGlimpse"
+title: "StaffGlimpse Roles, Permissions, and Access Control"
 sidebarTitle: "Roles & Permissions"
 description: "Learn how user roles and the permissions matrix control what each employee can read, write, create, delete, import, and export in StaffGlimpse."
 ---
@@ -39,7 +39,9 @@ Content-Type: application/json
   "roleName": "Team Lead",
   "description": "Leads a squad within the Engineering department",
   "departmentId": "dept_01HXYZ",
-  "equivalentRolePosition": 2
+  "departmentName": "Engineering",
+  "equivalentRolePosition": "Engineering Lead",
+  "designationName": "Team Lead"
 }
 ```
 
@@ -48,19 +50,27 @@ Each custom role carries the following properties:
 <AccordionGroup>
   <Accordion title="roleName" icon="tag">
     A human-readable label for the role, shown throughout the dashboard and in
-    API responses (e.g., `"Team Lead"`, `"HR Manager"`).
+    API responses (e.g., `"Team Lead"`, `"HR Manager"`). **Required.**
   </Accordion>
   <Accordion title="description" icon="align-left">
     A free-text description of the role's responsibilities. Useful for keeping
-    your role catalogue self-documenting.
+    your role catalogue self-documenting. **Required.**
   </Accordion>
   <Accordion title="departmentId" icon="building">
     Associates the role with a specific department. Obtain valid department IDs
-    from `GET /company/department/get`.
+    from `GET /company/department/get`. **Required.**
   </Accordion>
   <Accordion title="equivalentRolePosition" icon="arrow-up-1-9">
-    A numeric rank that establishes hierarchy among custom roles within a
-    department. Lower numbers represent more senior positions.
+    A string label that describes the equivalent position or seniority level
+    for this role within its department (e.g., `"Engineering Manager"`). **Required.**
+  </Accordion>
+  <Accordion title="departmentName" icon="folder">
+    The human-readable name of the department this role belongs to
+    (e.g., `"Engineering"`). Optional — provided for display purposes.
+  </Accordion>
+  <Accordion title="designationName" icon="id-badge">
+    The formal designation or job title associated with this role
+    (e.g., `"Manager"`). Optional.
   </Accordion>
 </AccordionGroup>
 
@@ -74,29 +84,37 @@ Authorization: Bearer <AWS_Cognito_ID_Token>
 x-api-key: <static_shared_key>
 ```
 
-The matrix is returned as an array of module permission objects inside `result`:
+The matrix is returned inside the `result` object, under the `permissions` key alongside the `roleId`:
 
 ```json
-[
-  {
-    "module": "holidays",
-    "read": true,
-    "write": false,
-    "create": false,
-    "delete": false,
-    "import": false,
-    "export": false
-  },
-  {
-    "module": "attendance",
-    "read": true,
-    "write": true,
-    "create": false,
-    "delete": false,
-    "import": false,
-    "export": true
+{
+  "message": "Success",
+  "responseCode": 200,
+  "response": "Success",
+  "result": {
+    "roleId": "role_01HABC",
+    "permissions": [
+      {
+        "module": "holidays",
+        "read": true,
+        "write": false,
+        "create": false,
+        "delete": false,
+        "import": false,
+        "export": false
+      },
+      {
+        "module": "attendance",
+        "read": true,
+        "write": true,
+        "create": false,
+        "delete": false,
+        "import": false,
+        "export": true
+      }
+    ]
   }
-]
+}
 ```
 
 The six permission flags that can be toggled per module are:

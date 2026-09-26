@@ -114,60 +114,63 @@ curl "https://6e52pmjmy4.execute-api.ap-south-1.amazonaws.com/live/document/get?
   "responseCode": 200,
   "response": "Success",
   "result": {
-    "documentId": "doc_new888",
-    "fileName": "medical_certificate.pdf",
-    "documentCategory": "Medical Certificate",
-    "contentType": "application/pdf",
-    "description": "",
-    "tags": [],
-    "isSigned": false,
-    "isEncrypted": false,
-    "isShared": false,
-    "isSensitive": true,
-    "isDeleted": false,
-    "isActive": true,
-    "isPublic": false,
-    "isVersioned": false,
-    "version": 1,
-    "createdDate": "2024-06-15T10:22:00.000Z",
-    "createdBy": "usr_001",
-    "s3Key": "documents/usr_001/doc_new888/medical_certificate.pdf"
+    "documents": [
+      {
+        "documentId": "doc_new888",
+        "fileName": "medical_certificate.pdf",
+        "documentCategory": "Medical Certificate",
+        "contentType": "application/pdf",
+        "description": "",
+        "tags": [],
+        "isSigned": false,
+        "isEncrypted": false,
+        "isShared": false,
+        "isSensitive": true,
+        "isDeleted": false,
+        "isActive": true,
+        "isPublic": false,
+        "isVersioned": false,
+        "version": 1,
+        "createdDate": "2024-06-15T10:22:00.000Z",
+        "createdBy": "usr_001"
+      }
+    ]
   }
 }
 ```
 
 ### Response Fields
 
-<ResponseField name="documentId" type="string">
+<ResponseField name="result.documents" type="array">
+  Array containing the matching document record(s).
+</ResponseField>
+
+<ResponseField name="result.documents[].documentId" type="string">
   Unique identifier for this document record.
 </ResponseField>
 
-<ResponseField name="fileName" type="string">
+<ResponseField name="result.documents[].fileName" type="string">
   Original file name at the time of upload.
 </ResponseField>
 
-<ResponseField name="documentCategory" type="string">
+<ResponseField name="result.documents[].documentCategory" type="string">
   Category label assigned to this document (e.g., `"Medical Certificate"`, `"ID Proof"`).
 </ResponseField>
 
-<ResponseField name="contentType" type="string">
+<ResponseField name="result.documents[].contentType" type="string">
   MIME type of the uploaded file (e.g., `"application/pdf"`, `"image/jpeg"`).
 </ResponseField>
 
-<ResponseField name="version" type="integer">
+<ResponseField name="result.documents[].version" type="integer">
   Current version number of the document. Starts at `1` and increments with each update when versioning is enabled.
 </ResponseField>
 
-<ResponseField name="isSensitive" type="boolean">
+<ResponseField name="result.documents[].isSensitive" type="boolean">
   When `true`, the document is flagged as sensitive and access may be restricted to authorised roles.
 </ResponseField>
 
-<ResponseField name="isVersioned" type="boolean">
+<ResponseField name="result.documents[].isVersioned" type="boolean">
   When `true`, the system retains previous versions of this document when it is updated.
-</ResponseField>
-
-<ResponseField name="s3Key" type="string">
-  The S3 object key representing the full path to the file in storage. Use this path when constructing direct CloudFront download URLs.
 </ResponseField>
 
 <Accordion title="All response fields">
@@ -191,7 +194,6 @@ curl "https://6e52pmjmy4.execute-api.ap-south-1.amazonaws.com/live/document/get?
 | `version` | integer | Current version number |
 | `createdDate` | string | ISO 8601 timestamp of upload |
 | `createdBy` | string | User ID of the uploader |
-| `s3Key` | string | Full S3 object path |
 
 </Accordion>
 
@@ -213,16 +215,16 @@ Use this endpoint to re-categorise a document, toggle its active state, or soft-
   The ID of the document to update.
 </ParamField>
 
-<ParamField body="documentCategory" type="string">
-  Updated category label for the document.
+<ParamField body="documentCategory" type="string" required>
+  Category label for the document. Pass the existing value if you do not wish to change the category.
 </ParamField>
 
-<ParamField body="isActive" type="boolean">
-  Set to `false` to deactivate the document without deleting it.
+<ParamField body="isActive" type="boolean" required>
+  Set to `false` to deactivate the document without deleting it. Pass the existing value if unchanged.
 </ParamField>
 
-<ParamField body="isDeleted" type="boolean">
-  Set to `true` to soft-delete the document. Set to `false` to restore a previously deleted document.
+<ParamField body="isDeleted" type="boolean" required>
+  Set to `true` to soft-delete the document. Set to `false` to restore a previously deleted document. Pass the existing value if unchanged.
 </ParamField>
 
 <Tabs>
@@ -246,9 +248,12 @@ curl -X PUT \
   "responseCode": 200,
   "response": "Success",
   "result": {
-    "documentId": "doc_new888",
-    "documentCategory": "Verified Medical Certificate",
-    "updatedAt": "2024-06-16T09:00:00.000Z"
+    "updatedFields": {
+      "documentCategory": "Verified Medical Certificate",
+      "isActive": true,
+      "isDeleted": false,
+      "updatedAt": "2024-06-16T09:00:00.000Z"
+    }
   }
 }
 ```
@@ -274,9 +279,12 @@ curl -X PUT \
   "responseCode": 200,
   "response": "Success",
   "result": {
-    "documentId": "doc_new888",
-    "isDeleted": true,
-    "updatedAt": "2024-06-16T10:15:00.000Z"
+    "updatedFields": {
+      "isDeleted": true,
+      "isActive": true,
+      "documentCategory": "Medical Certificate",
+      "updatedAt": "2024-06-16T10:15:00.000Z"
+    }
   }
 }
 ```
@@ -303,10 +311,12 @@ curl -X PUT \
   "responseCode": 200,
   "response": "Success",
   "result": {
-    "documentId": "doc_new888",
-    "isDeleted": false,
-    "isActive": true,
-    "updatedAt": "2024-06-16T11:00:00.000Z"
+    "updatedFields": {
+      "isDeleted": false,
+      "isActive": true,
+      "documentCategory": "Medical Certificate",
+      "updatedAt": "2024-06-16T11:00:00.000Z"
+    }
   }
 }
 ```
