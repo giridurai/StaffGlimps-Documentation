@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "name": "StaffGlimpse",
-  "theme": "luma",
+  "name": "StaffGlimpse API",
+  "theme": "almond",
   "colors": {
     "primary": "#0F52BA",
     "light": "#2563EB",
@@ -16,52 +16,24 @@
     }
   },
   "navigation": {
-    "tabs": [
+    "groups": [
       {
-        "tab": "Documentation",
-        "groups": [
-          {
-            "group": "Get Started",
-            "pages": []
-          },
-          {
-            "group": "Core Concepts",
-            "pages": []
-          },
-          {
-            "group": "Guides",
-            "pages": []
-          },
-          {
-            "group": "Base URLs & Endpoints",
-            "pages": []
-          }
+        "group": "Getting Started",
+        "pages": [
+          "introduction"
         ]
       },
       {
-        "tab": "API Reference",
-        "groups": [
-          {
-            "group": "Company & Org",
-            "pages": []
-          },
-          {
-            "group": "Users",
-            "pages": []
-          },
-          {
-            "group": "Workforce",
-            "pages": []
-          },
-          {
-            "group": "Platform",
-            "pages": []
-          }
-        ]
+        "group": "API Reference",
+        "openapi": "openapi.json"
       }
     ]
   },
   "api": {
     "openapi": "openapi.json"
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
   }
 }
